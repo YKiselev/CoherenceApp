@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<!DOCTYPE cache-config SYSTEM "cache-config.dtd">
+<cache-config>
+
+    <caching-scheme-mapping>
+        <cache-mapping>
+            <cache-name>Trades</cache-name>
+            <scheme-name>near</scheme-name>
+        </cache-mapping>
+
+        <cache-mapping>
+            <cache-name>Counterparts</cache-name>
+            <scheme-name>near</scheme-name>
+        </cache-mapping>
+
+    </caching-scheme-mapping>
+
+    <caching-schemes>
+        <near-scheme>
+            <scheme-name>near</scheme-name>
+            <serializer>
+                <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
+                <init-params>
+                    <init-param>
+                        <param-value>my-pof-config.xml</param-value>
+                        <param-type>String</param-type>
+                    </init-param>
+                </init-params>
+            </serializer>
+            <front-scheme>
+                <local-scheme>
+                    <high-units>100</high-units>
+                    <expiry-delay>10s</expiry-delay>
+                </local-scheme>
+            </front-scheme>
+            <back-scheme>
+                <distributed-scheme>
+                    <scheme-ref>distributed-db-backed</scheme-ref>
+                </distributed-scheme>
+            </back-scheme>
+            <refresh-ahead-factor>0.5</refresh-ahead-factor>
+        </near-scheme>
+
+        <distributed-scheme>
+            <scheme-name>distributed-db-backed</scheme-name>
+            <service-name>DistributedCache</service-name>
+            <serializer>
+                <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
+                <init-params>
+                    <init-param>
+                        <param-value>my-pof-config.xml</param-value>
+                        <param-type>String</param-type>
+                    </init-param>
+                </init-params>
+            </serializer>
+            <listener/>
+            <autostart>false</autostart>
+        </distributed-scheme>
+
+    </caching-schemes>
+</cache-config>

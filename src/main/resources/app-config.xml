@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+    <database>
+        <url>jdbc:oracle:thin:@Silent:1521:XE</url>
+        <driver>oracle.jdbc.OracleDriver</driver>
+        <username>test2</username>
+        <password>test2</password>
+        <validationQuery>SELECT 1 FROM DUAL</validationQuery>
+    </database>
+
+    <stores>
+        <Counterparts>
+            <class>org.uze.stores.CounterpartCacheStore</class>
+        </Counterparts>
+
+        <Trades>
+            <class>org.uze.stores.TradeCacheStore</class>
+        </Trades>
+    </stores>
+</configuration>

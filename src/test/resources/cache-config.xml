@@ -1,0 +1,100 @@
+<?xml version="1.0"?>
+<!DOCTYPE cache-config SYSTEM "cache-config.dtd">
+<cache-config xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config">
+
+    <caching-scheme-mapping>
+        <cache-mapping>
+            <cache-name>POF-1</cache-name>
+            <scheme-name>pof-near</scheme-name>
+        </cache-mapping>
+
+        <cache-mapping>
+            <cache-name>POF-2</cache-name>
+            <scheme-name>pof-near</scheme-name>
+        </cache-mapping>
+
+        <cache-mapping>
+            <cache-name>JSRL</cache-name>
+            <scheme-name>jsrl-near</scheme-name>
+        </cache-mapping>
+
+    </caching-scheme-mapping>
+
+    <caching-schemes>
+        <local-scheme>
+            <scheme-name>pof-local</scheme-name>
+            <service-name>PofTestLocalCache</service-name>
+        </local-scheme>
+
+        <local-scheme>
+            <scheme-name>jsrl-local</scheme-name>
+            <service-name>JsrlTestLocalCache</service-name>
+        </local-scheme>
+
+        <near-scheme>
+            <scheme-name>pof-near</scheme-name>
+            <front-scheme>
+                <local-scheme/>
+            </front-scheme>
+            <back-scheme>
+                <distributed-scheme>
+                    <scheme-ref>pof</scheme-ref>
+                </distributed-scheme>
+            </back-scheme>
+        </near-scheme>
+
+        <near-scheme>
+            <scheme-name>jsrl-near</scheme-name>
+            <front-scheme>
+                <local-scheme/>
+            </front-scheme>
+            <back-scheme>
+                <distributed-scheme>
+                    <scheme-ref>jsrl</scheme-ref>
+                </distributed-scheme>
+            </back-scheme>
+        </near-scheme>
+
+        <distributed-scheme>
+            <scheme-name>pof</scheme-name>
+            <service-name>PofTestCache</service-name>
+            <serializer>
+                <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
+                <init-params>
+                    <init-param>
+                        <param-value>my-pof-config.xml</param-value>
+                        <param-type>String</param-type>
+                    </init-param>
+                </init-params>
+            </serializer>
+            <backing-map-scheme>
+                <class-scheme>
+                    <scheme-ref>default-backing-map</scheme-ref>
+                </class-scheme>
+            </backing-map-scheme>
+            <listener/>
+            <autostart>false</autostart>
+        </distributed-scheme>
+
+        <distributed-scheme>
+            <scheme-name>jsrl</scheme-name>
+            <service-name>JsrlTestCache</service-name>
+            <serializer>
+                <class-name>com.tangosol.io.DefaultSerializer</class-name>
+            </serializer>
+            <backing-map-scheme>
+                <class-scheme>
+                    <scheme-ref>default-backing-map</scheme-ref>
+                </class-scheme>
+            </backing-map-scheme>
+            <listener/>
+            <autostart>false</autostart>
+        </distributed-scheme>
+
+        <class-scheme>
+            <scheme-name>default-backing-map</scheme-name>
+            <class-name>com.tangosol.util.SafeHashMap</class-name>
+        </class-scheme>
+
+    </caching-schemes>
+</cache-config>

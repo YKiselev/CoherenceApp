@@ -1,0 +1,103 @@
+<?xml version="1.0"?>
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+    <caching-scheme-mapping>
+        <cache-mapping>
+            <cache-name>Trades</cache-name>
+            <scheme-name>near</scheme-name>
+        </cache-mapping>
+
+        <cache-mapping>
+            <cache-name>Counterparts</cache-name>
+            <scheme-name>near</scheme-name>
+        </cache-mapping>
+
+    </caching-scheme-mapping>
+
+    <caching-schemes>
+        <near-scheme>
+            <scheme-name>near</scheme-name>
+            <front-scheme>
+                <local-scheme>
+                    <scheme-name>LocalMemoryScheme</scheme-name>
+                    <expiry-delay>5m</expiry-delay>
+                </local-scheme>
+            </front-scheme>
+            <back-scheme>
+                <distributed-scheme>
+                    <scheme-ref>distributed-db-backed</scheme-ref>
+                </distributed-scheme>
+            </back-scheme>
+        </near-scheme>
+
+        <!-- Local scheme backed by JDBC store -->
+        <local-scheme>
+            <scheme-name>pof-local</scheme-name>
+            <service-name>LocalCache</service-name>
+            <cachestore-scheme>
+                <class-scheme>
+                    <class-name>org.uze.stores.MyStore</class-name>
+                    <init-params>
+                        <init-param>
+                            <param-type>java.lang.String</param-type>
+                            <param-value>{cache-name}</param-value>
+                        </init-param>
+                    </init-params>
+                </class-scheme>
+            </cachestore-scheme>
+        </local-scheme>
+
+        <!--     DB Backed Distributed caching scheme.    -->
+        <distributed-scheme>
+            <scheme-name>distributed-db-backed</scheme-name>
+            <service-name>DistributedCache</service-name>
+            <serializer>
+                <instance>
+                    <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
+                    <init-params>
+                        <init-param>
+                            <param-type>String</param-type>
+                            <param-value>my-pof-config.xml</param-value>
+                        </init-param>
+                    </init-params>
+                </instance>
+            </serializer>
+            <backing-map-scheme>
+                <read-write-backing-map-scheme>
+                    <internal-cache-scheme>
+                        <local-scheme>
+                            <!--<scheme-ref>MemoryScheme</scheme-ref>-->
+                            <!--<scheme-name>MemoryScheme</scheme-name>-->
+                            <high-units>10000</high-units>
+                            <expiry-delay>15m</expiry-delay>
+                        </local-scheme>
+                        <!--<class-scheme>-->
+                        <!--<class-name>com.tangosol.util.ObservableHashMap</class-name>-->
+                        <!--</class-scheme>-->
+                    </internal-cache-scheme>
+                    <cachestore-scheme>
+                        <class-scheme>
+                            <class-name>org.uze.stores.MyStore</class-name>
+                            <init-params>
+                                <init-param>
+                                    <param-type>java.lang.String</param-type>
+                                    <param-value>{cache-name}</param-value>
+                                </init-param>
+                            </init-params>
+                        </class-scheme>
+                    </cachestore-scheme>
+                    <read-only>false</read-only>
+                    <!--        To make this a write-through caches just change the value below to 0 (zero)        -->
+                    <write-delay-seconds>1</write-delay-seconds>
+                </read-write-backing-map-scheme>
+            </backing-map-scheme>
+            <!--<listener>-->
+                <!--<class-scheme>-->
+                <!--</class-scheme>-->
+            <!--</listener>-->
+            <autostart>true</autostart>
+        </distributed-scheme>
+    </caching-schemes>
+</cache-config>
