@@ -8,9 +8,7 @@ import org.uze.client.Trade;
 
 import java.io.InputStreamReader;
 import java.io.StreamTokenizer;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * User: Uze
@@ -31,15 +29,19 @@ public class CoherenceApp {
     private static CacheAccess cache;
 
     public static void main(String[] args) throws Exception {
+        final NamedCache test1 = CacheFactory.getCache("Test1");
+        Map m1 = test1.getAll(Arrays.asList(1L, 2L, 3L, 4L, 5L, 6L));
+        test1.put(123L, "BBBBBBBBBBEEEEEEEEEEEEEEEEE");
+
         // check raw cache items
-        final NamedCache tmp = CacheFactory.getCache("Counterparts");
-        Object raw1 = tmp.get(1L);
-        if (raw1 == null) {
-            fillDatabase();
-        } else {
-            Object raw2 = tmp.get(1L);
-            System.out.println("obj1 equals obj2 ? " + (raw1.equals(raw2)) + ", obj1 == obj2 ? " + (raw1 == raw2));
-        }
+//        final NamedCache tmp = CacheFactory.getCache("Counterparts");
+//        Object raw1 = tmp.get(1L);
+//        if (raw1 == null) {
+//            fillDatabase();
+//        } else {
+//            Object raw2 = tmp.get(1L);
+//            System.out.println("obj1 equals obj2 ? " + (raw1.equals(raw2)) + ", obj1 == obj2 ? " + (raw1 == raw2));
+//        }
 
         System.out.println(USAGE);
 

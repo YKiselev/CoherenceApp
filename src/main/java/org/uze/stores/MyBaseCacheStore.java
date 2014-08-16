@@ -1,13 +1,9 @@
 package org.uze.stores;
 
 import com.tangosol.net.cache.CacheStore;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.dbcp.BasicDataSource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-import org.uze.coherence.Config;
 
-import javax.sql.DataSource;
 import java.util.*;
 
 /**
@@ -15,43 +11,12 @@ import java.util.*;
  */
 public abstract class MyBaseCacheStore<K, V> implements CacheStore {
 
-    private enum Holder {
-        INSTANCE;
-
-        private final DataSource dataSource;
-
-        Holder() {
-            try {
-                // fuck Oracle
-                Locale.setDefault(Locale.ENGLISH);
-
-                BasicDataSource ds = new BasicDataSource();
-
-                Configuration db = Config.getInstance().subset("database");
-
-                ds.setDriverClassName(db.getString("driver"));
-                ds.setUsername(db.getString("username"));
-                ds.setPassword(db.getString("password"));
-                ds.setUrl(db.getString("url"));
-
-                ds.setMaxActive(5);
-                ds.setMaxIdle(1);
-                ds.setInitialSize(1);
-                ds.setValidationQuery(db.getString("validationQuery"));
-
-                this.dataSource = ds;
-            } catch (Exception e) {
-                throw new RuntimeException("Connection failed", e);
-            }
-        }
-    }
-
     public MyBaseCacheStore() {
 
     }
 
     protected JdbcTemplate getTemplate() {
-        return new JdbcTemplate(Holder.INSTANCE.dataSource);
+        return new JdbcTemplate(Holder.INSTANCE.getDataSource());
     }
 
     @Override

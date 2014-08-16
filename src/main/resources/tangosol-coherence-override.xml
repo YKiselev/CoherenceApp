@@ -4,8 +4,9 @@
            xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config/1.2/coherence-operational-config.xsd">
 
     <cluster-config>
+
         <member-identity>
-            <cluster-name system-property="tangosol.coherence.cluster">CoherenceAppCluster</cluster-name>
+            <cluster-name system-property="tangosol.coherence.cluster">MyCoherenceCluster</cluster-name>
             <role-name>CoherenceAppNode</role-name>
         </member-identity>
 
@@ -21,11 +22,15 @@
         </unicast-listener>
 
         <multicast-listener>
-            <address>224.10.10.0</address>
-            <port>7777</port>
+            <address>231.1.1.1</address>
+            <port>33387</port>
             <time-to-live system-property="tangosol.coherence.ttl">5</time-to-live>
             <join-timeout-milliseconds>3000</join-timeout-milliseconds>
         </multicast-listener>
+
+        <serializers>
+            <serializer id="pof"/>
+        </serializers>
     </cluster-config>
 
     <logging-config>

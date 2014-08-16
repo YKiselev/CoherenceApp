@@ -14,9 +14,29 @@
             <scheme-name>near</scheme-name>
         </cache-mapping>
 
+        <cache-mapping>
+            <cache-name>Test1</cache-name>
+            <scheme-name>near1</scheme-name>
+        </cache-mapping>
+
     </caching-scheme-mapping>
 
     <caching-schemes>
+        <near-scheme>
+            <scheme-name>near1</scheme-name>
+            <front-scheme>
+                <local-scheme>
+                    <scheme-name>LocalMemoryScheme</scheme-name>
+                    <expiry-delay>5m</expiry-delay>
+                </local-scheme>
+            </front-scheme>
+            <back-scheme>
+                <distributed-scheme>
+                    <scheme-ref>test-scheme1</scheme-ref>
+                </distributed-scheme>
+            </back-scheme>
+        </near-scheme>
+
         <near-scheme>
             <scheme-name>near</scheme-name>
             <front-scheme>
@@ -99,5 +119,43 @@
             <!--</listener>-->
             <autostart>true</autostart>
         </distributed-scheme>
+
+        <distributed-scheme>
+            <scheme-name>test-scheme1</scheme-name>
+            <service-name>DistributedCache</service-name>
+            <!--<serializer>-->
+                <!--<instance>-->
+                    <!--<class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>-->
+                    <!--<init-params>-->
+                        <!--<init-param>-->
+                            <!--<param-type>String</param-type>-->
+                            <!--<param-value>my-pof-config.xml</param-value>-->
+                        <!--</init-param>-->
+                    <!--</init-params>-->
+                <!--</instance>-->
+            <!--</serializer>-->
+            <thread-count>4</thread-count>
+            <task-hung-threshold>30000</task-hung-threshold>
+            <backing-map-scheme>
+                <read-write-backing-map-scheme>
+                    <internal-cache-scheme>
+                        <local-scheme>
+                            <high-units>10000</high-units>
+                            <expiry-delay>15m</expiry-delay>
+                        </local-scheme>
+                    </internal-cache-scheme>
+                    <cachestore-scheme>
+                        <class-scheme>
+                            <class-name>org.uze.stores.Test1Store</class-name>
+                        </class-scheme>
+                    </cachestore-scheme>
+                    <read-only>false</read-only>
+                    <write-delay>5s</write-delay>
+                </read-write-backing-map-scheme>
+            </backing-map-scheme>
+            <autostart>true</autostart>
+        </distributed-scheme>
     </caching-schemes>
+
+
 </cache-config>

@@ -32,7 +32,7 @@ public abstract class CacheAccess<K, V, PO> {
                 return cache;
             }
         }
-        throw new IllegalArgumentException("Unknown caches: " + name);
+        throw new IllegalArgumentException("Unknown cache: " + name);
     }
 
     public CacheAccess(String cacheName) {
