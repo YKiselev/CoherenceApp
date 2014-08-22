@@ -125,17 +125,6 @@ public class TableMetadataBuilder {
                 return input != null ? input.getName() : null;
             }
         });
-        final Iterable<String> body = Iterables.transform(Iterables.filter(columns, new Predicate<BuilderColumn>() {
-            @Override
-            public boolean apply(@Nullable BuilderColumn input) {
-                return input != null && !input.isKeyOnly();
-            }
-        }), new Function<BuilderColumn, String>() {
-            @Override
-            public String apply(@Nullable BuilderColumn input) {
-                return input != null ? input.getName() : null;
-            }
-        });
 
         int prevPosition = -1;
         for (String keyColumn : key) {
@@ -144,7 +133,7 @@ public class TableMetadataBuilder {
             prevPosition = pos;
         }
 
-        return new TableMetadata(tableName, columns, key, body);
+        return new TableMetadata(tableName, columns, key);
     }
 
     private int indexOf(String name) {

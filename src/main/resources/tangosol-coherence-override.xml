@@ -2,7 +2,6 @@
 <coherence xmlns="http://xmlns.oracle.com/coherence/coherence-operational-config"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config/1.2/coherence-operational-config.xsd">
-
     <cluster-config>
 
         <member-identity>
@@ -37,4 +36,19 @@
         <severity-level system-property="tangosol.coherence.log.level">5</severity-level>
         <character-limit system-property="tangosol.coherence.log.limit">0</character-limit>
     </logging-config>
+
+    <!--<configurable-cache-factory-config>-->
+        <!--<class-name system-property="tangosol.coherence.cachefactory">com.tangosol.coherence.spring.SpringAwareCacheFactory</class-name>-->
+        <!--<init-params>-->
+            <!--<init-param>-->
+                <!--<param-type>java.lang.String</param-type>-->
+                <!--<param-value system-property="tangosol.coherence.cacheconfig">coherence-cache-config.xml</param-value>-->
+            <!--</init-param>-->
+            <!--<init-param id="1">-->
+                <!--<param-type>java.lang.String</param-type>-->
+                <!--<param-value system-property="tangosol.coherence.springconfig">/spring/coherence-app-context.xml</param-value>-->
+            <!--</init-param>-->
+        <!--</init-params>-->
+    <!--</configurable-cache-factory-config>-->
+
 </coherence>

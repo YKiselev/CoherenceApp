@@ -9,6 +9,10 @@
     <artifactId>CoherenceApp</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+    <properties>
+        <org.springframework.version>4.0.6.RELEASE</org.springframework.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.oracle.coherence</groupId>
@@ -24,8 +28,14 @@
 
         <dependency>
             <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>${org.springframework.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
             <artifactId>spring-jdbc</artifactId>
-            <version>3.2.5.RELEASE</version>
+            <version>${org.springframework.version}</version>
         </dependency>
 
         <dependency>
@@ -53,29 +63,58 @@
         </dependency>
 
         <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>11.0.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.tomcat</groupId>
+            <artifactId>tomcat-jdbc</artifactId>
+            <version>8.0.9</version>
+        </dependency>
+
+        <!--<dependency>-->
+            <!--<groupId>tomcat</groupId>-->
+            <!--<artifactId>tomcat-juli</artifactId>-->
+            <!--<version>5.5.12</version>-->
+        <!--</dependency>-->
+
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-all</artifactId>
+            <version>1.3</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.10</version>
             <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>11.0.2</version>
-        </dependency>
+
     </dependencies>
 
     <!--<repositories>-->
-        <!--<repository>-->
-            <!--<id>project.local</id>-->
-            <!--<name>repo</name>-->
-            <!--<url>file:${project.basedir}/repo</url>-->
-        <!--</repository>-->
+    <!--<repository>-->
+    <!--<id>project.local</id>-->
+    <!--<name>repo</name>-->
+    <!--<url>file:${project.basedir}/repo</url>-->
+    <!--</repository>-->
     <!--</repositories>-->
 
     <build>
         <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                </configuration>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
@@ -88,34 +127,34 @@
                 </configuration>
             </plugin>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>2.2</version>
-                <executions>
-                    <execution>
-                        <!-- phase: package -->
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
+            <!--<plugin>-->
+                <!--<groupId>org.apache.maven.plugins</groupId>-->
+                <!--<artifactId>maven-shade-plugin</artifactId>-->
+                <!--<version>2.2</version>-->
+                <!--<executions>-->
+                    <!--<execution>-->
+                        <!--&lt;!&ndash; phase: package &ndash;&gt;-->
+                        <!--<phase>package</phase>-->
+                        <!--<goals>-->
+                            <!--<goal>shade</goal>-->
+                        <!--</goals>-->
+                        <!--<configuration>-->
 
-                            <minimizeJar>false</minimizeJar>
-                            <artifactSet>
-                                <excludes>
-                                    <!--<exclude>classworlds:classworlds</exclude>-->
-                                    <!--<exclude>junit:junit</exclude>-->
-                                    <!--<exclude>jmock:*</exclude>-->
-                                    <!--<exclude>*:xml-apis</exclude>-->
-                                    <!--<exclude>org.apache.maven:lib:tests</exclude>-->
-                                    <!--<exclude>log4j:log4j:jar:</exclude>-->
-                                </excludes>
-                            </artifactSet>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+                            <!--<minimizeJar>false</minimizeJar>-->
+                            <!--<artifactSet>-->
+                                <!--<excludes>-->
+                                    <!--&lt;!&ndash;<exclude>classworlds:classworlds</exclude>&ndash;&gt;-->
+                                    <!--&lt;!&ndash;<exclude>junit:junit</exclude>&ndash;&gt;-->
+                                    <!--&lt;!&ndash;<exclude>jmock:*</exclude>&ndash;&gt;-->
+                                    <!--&lt;!&ndash;<exclude>*:xml-apis</exclude>&ndash;&gt;-->
+                                    <!--&lt;!&ndash;<exclude>org.apache.maven:lib:tests</exclude>&ndash;&gt;-->
+                                    <!--&lt;!&ndash;<exclude>log4j:log4j:jar:</exclude>&ndash;&gt;-->
+                                <!--</excludes>-->
+                            <!--</artifactSet>-->
+                        <!--</configuration>-->
+                    <!--</execution>-->
+                <!--</executions>-->
+            <!--</plugin>-->
         </plugins>
     </build>
 </project>

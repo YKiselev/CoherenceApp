@@ -1,13 +1,22 @@
 package org.uze.coherence;
 
 import com.tangosol.net.CacheFactory;
+import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.internal.SessionOptimisticPut;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.jdbc.core.RowCallbackHandler;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.uze.caches.CacheAccess;
 import org.uze.client.Counterpart;
 import org.uze.client.Trade;
+import org.uze.spring.SpringContextHolder;
 
 import java.io.InputStreamReader;
 import java.io.StreamTokenizer;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.*;
 
 /**
@@ -29,19 +38,51 @@ public class CoherenceApp {
     private static CacheAccess cache;
 
     public static void main(String[] args) throws Exception {
+        Locale.setDefault(Locale.ENGLISH);
+
+        final NamedParameterJdbcTemplate template = SpringContextHolder.getBean("ch-app.jdbcTemplate", NamedParameterJdbcTemplate.class);
+//
+//        MapSqlParameterSource ps = new MapSqlParameterSource();
+//        ps.addValue("ids", Arrays.asList(1,"AB"));
+//        //List<String> list = template.queryForList("select name from table2 where (id,sub_id) in ((?,?))", ps, String.class);
+//
+//        template.getJdbcOperations().query("select * from table2 where (id,sub_id) in ((?,?),(?,?))", new Object[]{1L, "AB", 2L, "fx"}, new RowCallbackHandler() {
+//            @Override
+//            public void processRow(ResultSet rs) throws SQLException {
+//                System.out.println(rs.getString("ID"));
+//            }
+//        });
+//
+//        System.exit(0);
+
+        CacheFactory.getCacheFactoryBuilder()
+            .getConfigurableCacheFactory(CoherenceApp.class.getClassLoader())
+            .getResourceRegistry()
+            .registerResource(BeanFactory.class, SpringContextHolder.getApplicationContext());
+
         final NamedCache test1 = CacheFactory.getCache("Test1");
         Map m1 = test1.getAll(Arrays.asList(1L, 2L, 3L, 4L, 5L, 6L));
         test1.put(123L, "BBBBBBBBBBEEEEEEEEEEEEEEEEE");
 
+        /////////////////
+        final Counterpart cp2 =new Counterpart();
+
+        cp2.setId(1L);
+        cp2.setName("New user #2");
+
+        final Counterpart oldcp = CacheAccess.COUNTERPARTS.put(cp2.getId(), cp2);
+        System.out.println("Old cp: "+oldcp);
+        ///////////////
+
         // check raw cache items
-//        final NamedCache tmp = CacheFactory.getCache("Counterparts");
-//        Object raw1 = tmp.get(1L);
-//        if (raw1 == null) {
-//            fillDatabase();
-//        } else {
-//            Object raw2 = tmp.get(1L);
-//            System.out.println("obj1 equals obj2 ? " + (raw1.equals(raw2)) + ", obj1 == obj2 ? " + (raw1 == raw2));
-//        }
+        final NamedCache tmp = CacheFactory.getCache("Counterparts");
+        Object raw1 = tmp.get(1L);
+        if (raw1 == null) {
+            fillDatabase();
+        } else {
+            Object raw2 = tmp.get(1L);
+            System.out.println("obj1 equals obj2 ? " + (raw1.equals(raw2)) + ", obj1 == obj2 ? " + (raw1 == raw2));
+        }
 
         System.out.println(USAGE);
 

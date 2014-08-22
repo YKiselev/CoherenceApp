@@ -6,17 +6,27 @@ import com.tangosol.util.BinaryEntry;
 import org.uze.strategy.BinaryEntryStoreStrategy;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
 /**
  * Created by Uze on 15.08.2014.
  */
-public abstract class BaseStore implements BinaryEntryStore {
+public class BaseBinaryEntryStore implements BinaryEntryStore {
 
-    private final BinaryEntryStoreStrategy strategy;
+    private BinaryEntryStoreStrategy strategy;
 
-    protected BaseStore(BinaryEntryStoreStrategy strategy) {
+    public BaseBinaryEntryStore() {
+    }
+
+    public BaseBinaryEntryStore(BinaryEntryStoreStrategy strategy) {
+        this.strategy = strategy;
+    }
+
+    public BinaryEntryStoreStrategy getStrategy() {
+        return strategy;
+    }
+
+    public void setStrategy(BinaryEntryStoreStrategy strategy) {
         this.strategy = strategy;
     }
 
@@ -48,17 +58,5 @@ public abstract class BaseStore implements BinaryEntryStore {
     @Override
     public void eraseAll(Set set) {
         strategy.erase(Iterables.filter(set, BinaryEntry.class));
-    }
-
-    private Iterable<List<BinaryEntry>> partition(Set source) {
-        return Iterables.partition(Iterables.filter(source, BinaryEntry.class), 512);
-    }
-
-    private void loadBatch(List<BinaryEntry> list) {
-
-    }
-
-    private void storeBatch(List<BinaryEntry> list) {
-
     }
 }

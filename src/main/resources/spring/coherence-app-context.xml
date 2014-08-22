@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+
+    <bean id="ch-app.dataSource" class="org.apache.tomcat.jdbc.pool.DataSource">
+        <property name="url" value="jdbc:oracle:thin:@Silent:1521:XE"/>
+        <property name="defaultAutoCommit" value="false"/>
+        <property name="driverClassName" value="oracle.jdbc.OracleDriver"/>
+        <property name="username" value="test2"/>
+        <property name="password" value="test2"/>
+        <property name="maxActive" value="32"/>
+        <property name="testOnBorrow" value="true"/>
+        <property name="validationQuery" value="SELECT 1 FROM DUAL"/>
+        <property name="validationQueryTimeout" value="30"/>
+        <property name="removeAbandoned" value="true"/>
+        <property name="removeAbandonedTimeout" value="120"/>
+    </bean>
+
+    <!--<bean id="ch-app.cacheFactory" class="org.uze.spring.SpringAwareCacheFactory"/>-->
+
+    <bean id="ch-app.jdbcTemplate" class="org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate">
+        <constructor-arg ref="ch-app.dataSource"/>
+    </bean>
+
+    <bean id="ch-app.parentStore" class="org.uze.stores.BaseJdbcBinaryEntryStore" abstract="true">
+        <property name="jdbcTemplate" ref="ch-app.jdbcTemplate"/>
+        <property name="batchSize" value="1000"/>
+    </bean>
+
+    <bean id="ch-app.test1Store" class="org.uze.stores.Test1Store" parent="ch-app.parentStore"/>
+</beans>

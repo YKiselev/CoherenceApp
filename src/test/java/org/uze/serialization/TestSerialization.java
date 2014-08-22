@@ -3,6 +3,7 @@ package org.uze.serialization;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Date;
@@ -12,6 +13,7 @@ import java.util.Map;
 /**
  * Created by Uze on 12.12.13.
  */
+@Ignore
 public class TestSerialization {
 
     private static final int COUNT = 50000;

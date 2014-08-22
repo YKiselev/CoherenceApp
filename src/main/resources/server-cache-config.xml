@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xmlns:spring="class://org.uze.spring.SpringNamespaceHandler"
               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
 
     <caching-scheme-mapping>
@@ -122,18 +123,18 @@
 
         <distributed-scheme>
             <scheme-name>test-scheme1</scheme-name>
-            <service-name>DistributedCache</service-name>
-            <!--<serializer>-->
-                <!--<instance>-->
-                    <!--<class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>-->
+            <service-name>DistributedBinaryCache</service-name>
+            <serializer>
+                <instance>
+                    <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
                     <!--<init-params>-->
                         <!--<init-param>-->
                             <!--<param-type>String</param-type>-->
                             <!--<param-value>my-pof-config.xml</param-value>-->
                         <!--</init-param>-->
                     <!--</init-params>-->
-                <!--</instance>-->
-            <!--</serializer>-->
+                </instance>
+            </serializer>
             <thread-count>4</thread-count>
             <task-hung-threshold>30000</task-hung-threshold>
             <backing-map-scheme>
@@ -146,7 +147,8 @@
                     </internal-cache-scheme>
                     <cachestore-scheme>
                         <class-scheme>
-                            <class-name>org.uze.stores.Test1Store</class-name>
+                            <spring:bean>ch-app.test1Store</spring:bean>
+                            <!--<class-name>spring-bean:ch-app.test1Store</class-name>-->
                         </class-scheme>
                     </cachestore-scheme>
                     <read-only>false</read-only>

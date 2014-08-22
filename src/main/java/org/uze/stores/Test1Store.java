@@ -3,9 +3,9 @@ package org.uze.stores;
 /**
  * Created by Uze on 16.08.2014.
  */
-public class Test1Store extends BaseStore {
+public class Test1Store extends BaseJdbcBinaryEntryStore {
 
     public Test1Store() {
-        super("TEST1");
+        System.out.println(getClass().getName() + ".ctor()");
     }
 }

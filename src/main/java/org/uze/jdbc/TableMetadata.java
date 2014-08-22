@@ -14,7 +14,7 @@ public class TableMetadata {
     private final String tableName;
     private final ImmutableList<String> keyColumns;
     private final ImmutableList<String> allColumns;
-    private final ImmutableMap<String, Column> columns;
+    private final ImmutableMap<String, Column> columnMap;
 
     public String getTableName() {
         return tableName;
@@ -29,14 +29,13 @@ public class TableMetadata {
     }
 
     public Column getColumn(String name) {
-        return columns.get(name);
+        return columnMap.get(name);
     }
 
-    TableMetadata(String tableName, Iterable<TableMetadataBuilder.BuilderColumn> columns, Iterable<String> keyColumns, Iterable<String> bodyColumns) {
+    TableMetadata(String tableName, Iterable<TableMetadataBuilder.BuilderColumn> columns, Iterable<String> keyColumns) {
         Objects.requireNonNull(tableName);
         Objects.requireNonNull(columns);
         Objects.requireNonNull(keyColumns);
-        Objects.requireNonNull(bodyColumns);
 
         final ImmutableList.Builder<String> listBuilder = ImmutableList.builder();
         final ImmutableMap.Builder<String, Column> builder = ImmutableMap.builder();
@@ -46,10 +45,9 @@ public class TableMetadata {
         }
 
         this.tableName = tableName;
-        this.columns = builder.build();
+        this.columnMap = builder.build();
         this.allColumns = listBuilder.build();
         this.keyColumns = ImmutableList.copyOf(keyColumns);
-        this.bodyColumns = ImmutableList.copyOf(bodyColumns);
     }
 
     static class Column {
