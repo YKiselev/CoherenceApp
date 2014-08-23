@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <tx:annotation-driven transaction-manager="txManager" />
 
     <bean id="ch-app.dataSource" class="org.apache.tomcat.jdbc.pool.DataSource">
         <property name="url" value="jdbc:oracle:thin:@Silent:1521:XE"/>
@@ -15,6 +19,10 @@
         <property name="validationQueryTimeout" value="30"/>
         <property name="removeAbandoned" value="true"/>
         <property name="removeAbandonedTimeout" value="120"/>
+    </bean>
+
+    <bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="ch-app.dataSource"/>
     </bean>
 
     <!--<bean id="ch-app.cacheFactory" class="org.uze.spring.SpringAwareCacheFactory"/>-->
