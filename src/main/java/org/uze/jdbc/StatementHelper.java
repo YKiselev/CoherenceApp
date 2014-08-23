@@ -83,8 +83,6 @@ public class StatementHelper {
     public static String buildInsertStatement(TableMetadata metadata) {
         Objects.requireNonNull(metadata);
 
-        final List<String> keyColumns = metadata.getKeyColumns();
-        final boolean complexFlag = keyColumns.size() > 1;
         final StringBuilder sb = new StringBuilder();
 
         sb.append("INSERT INTO ").append(metadata.getTableName()).append('(');
@@ -104,39 +102,50 @@ public class StatementHelper {
         }
 
         sb.append("\nFROM DUAL\nWHERE NOT EXISTS (SELECT NULL FROM ")
-            .append(metadata.getTableName()).append(" WHERE ");
+            .append(metadata.getTableName());
 
-        if (complexFlag) {
-            sb.append('(');
-        }
+        appendWhereClause(metadata, sb);
 
-        count = 0;
-        for (String columnName : keyColumns) {
+        sb.append(')');
+
+        return sb.toString();
+    }
+
+    public static String buildUpdateStatement(TableMetadata metadata) {
+        Objects.requireNonNull(metadata);
+
+        final StringBuilder sb = new StringBuilder();
+
+        sb.append("UPDATE ").append(metadata.getTableName()).append(" SET ");
+
+        int count = 0;
+        for (String columnName : metadata.getColumns()) {
             if (count > 0) {
-                sb.append(',');
+                sb.append(",");
             }
-            sb.append(columnName);
+            sb.append(columnName).append("=?");
             count++;
         }
 
-        if (complexFlag) {
-            sb.append(')');
-        }
-
-        sb.append(" IN (");
-
-        if (complexFlag) {
-            sb.append('?');
-            for (int i = keyColumns.size(); i > 1; i--) {
-                sb.append(",?");
-            }
-            sb.append(')');
-        } else {
-            sb.append('?');
-        }
-
-        sb.append(')').append(')');
+        appendWhereClause(metadata, sb);
 
         return sb.toString();
+    }
+
+    private static void appendWhereClause(TableMetadata metadata, StringBuilder sb) {
+        Objects.requireNonNull(metadata);
+
+        final List<String> keyColumns = metadata.getKeyColumns();
+
+        sb.append("\nWHERE ");
+
+        int count = 0;
+        for (String name : keyColumns) {
+            if (count > 0) {
+                sb.append("\n  AND ");
+            }
+            sb.append(name).append("=?");
+            count++;
+        }
     }
 }

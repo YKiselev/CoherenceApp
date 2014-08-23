@@ -148,7 +148,6 @@
                     <cachestore-scheme>
                         <class-scheme>
                             <spring:bean>ch-app.test1Store</spring:bean>
-                            <!--<class-name>spring-bean:ch-app.test1Store</class-name>-->
                         </class-scheme>
                     </cachestore-scheme>
                     <read-only>false</read-only>
