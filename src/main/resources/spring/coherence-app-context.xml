@@ -9,7 +9,7 @@
 
     <context:annotation-config/>
 
-    <tx:annotation-driven transaction-manager="txManager" />
+    <tx:annotation-driven transaction-manager="txManager"/>
 
     <bean id="ch-app.dataSource" class="org.apache.tomcat.jdbc.pool.DataSource">
         <property name="url" value="jdbc:oracle:thin:@Silent:1521:XE"/>
@@ -29,30 +29,19 @@
         <property name="dataSource" ref="ch-app.dataSource"/>
     </bean>
 
-    <!--<bean id="ch-app.cacheFactory" class="org.uze.spring.SpringAwareCacheFactory"/>-->
+    <bean id="ch-app.statementBuilder" class="org.uze.jdbc.OracleStatementBuilder"/>
 
     <bean id="ch-app.jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
         <constructor-arg ref="ch-app.dataSource"/>
         <!--<property name="maxRows" value="1000000"/>-->
     </bean>
 
-    <bean id="ch-app.binaryEntryStoreJdbcStrategy" class="org.uze.strategy.BinaryEntryStoreJdbcStrategy">
+    <bean id="ch-app.parentStore" class="org.uze.stores.BaseJdbcBinaryEntryStore" abstract="true">
         <property name="jdbcTemplate" ref="ch-app.jdbcTemplate"/>
-        <property name="statementBuilder">
-            <bean class="org.uze.jdbc.OracleStatementBuilder"/>
-        </property>
+        <property name="statementBuilder" ref="ch-app.statementBuilder"/>
         <property name="batchSize" value="1000"/>
     </bean>
 
-    <bean id="ch-app.test1Strategy" parent="ch-app.binaryEntryStoreJdbcStrategy">
-        <property name="batchSize" value="500"/>
-    </bean>
-
-    <bean id="ch-app.parentStore" class="org.uze.stores.BaseBinaryEntryStore" abstract="true">
-        <property name="strategy" ref="ch-app.binaryEntryStoreJdbcStrategy"/>
-    </bean>
-
     <bean id="ch-app.test1Store" class="org.uze.stores.Test1Store" parent="ch-app.parentStore">
-        <property name="strategy" ref="ch-app.test1Strategy"/>
     </bean>
 </beans>

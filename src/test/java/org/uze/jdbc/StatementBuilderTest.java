@@ -30,7 +30,7 @@ import static org.hamcrest.Matchers.*;
  * <p/>
  * * Created by Uze on 18.08.2014.
  */
-public class TableMetadataBuilderTest {
+public class StatementBuilderTest {
 
     public static final TableMetadata MULTI_COLUMN_KEY_TABLE_METADATA = new TableMetadataBuilder("TABLE1")
         .column("COB", Types.VARCHAR, String.class)
@@ -198,4 +198,26 @@ public class TableMetadataBuilderTest {
         final String[] values = m.group(7).split(",");
         Assert.assertThat(values, arrayWithSize(7));
     }
+
+    @Test
+    public void testDeleteStatement() throws Exception {
+        final String sql = statementBuilder.buildDeleteStatement(MULTI_COLUMN_KEY_TABLE_METADATA, 15);
+        Assert.assertNotNull(sql);
+
+        final Pattern pattern = Pattern.compile("\\s*DELETE\\s+FROM\\s+(.+)\\s+WHERE\\s*\\((.+)\\)\\s*IN\\s*\\((.+)\\)",
+            Pattern.CASE_INSENSITIVE + Pattern.DOTALL);
+
+        final Matcher m = pattern.matcher(sql);
+        Assert.assertTrue(m.matches());
+
+        final String[] tables = m.group(1).split(",");
+        Assert.assertThat(tables, arrayWithSize(1));
+
+        final String[] keys = m.group(2).split(",");
+        Assert.assertThat(keys, arrayWithSize(2));
+
+        final String[] values = m.group(3).split("(?<=\\))\\s*,\\s*(?=\\()");
+        Assert.assertThat(values, arrayWithSize(15));
+    }
+
 }

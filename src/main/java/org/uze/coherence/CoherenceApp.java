@@ -1,21 +1,31 @@
 package org.uze.coherence;
 
+import com.google.common.base.Charsets;
+import com.tangosol.io.ByteArrayWriteBuffer;
+import com.tangosol.io.Serializer;
+import com.tangosol.io.pof.PofBufferWriter;
+import com.tangosol.io.pof.PofSerializer;
+import com.tangosol.io.pof.PofWriter;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.internal.SessionOptimisticPut;
+import com.tangosol.util.Binary;
+import com.tangosol.util.BinaryWriteBuffer;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.uze.caches.CacheAccess;
 import org.uze.client.Counterpart;
 import org.uze.client.Trade;
+import org.uze.pof.CounterpartPO;
 import org.uze.spring.SpringContextHolder;
 
-import java.io.InputStreamReader;
-import java.io.StreamTokenizer;
+import java.io.*;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
@@ -41,13 +51,17 @@ public class CoherenceApp {
     public static void main(String[] args) throws Exception {
         Locale.setDefault(Locale.ENGLISH);
 
-        final JdbcTemplate template = SpringContextHolder.getBean("ch-app.jdbcTemplate", JdbcTemplate.class);
+//        final JdbcTemplate template = SpringContextHolder.getBean("ch-app.jdbcTemplate", JdbcTemplate.class);
 //
-//        MapSqlParameterSource ps = new MapSqlParameterSource();
-//        ps.addValue("ids", Arrays.asList(1,"AB"));
-//        //List<String> list = template.queryForList("select name from table2 where (id,sub_id) in ((?,?))", ps, String.class);
-//
-//        template.getJdbcOperations().query("select * from table2 where (id,sub_id) in ((?,?),(?,?))", new Object[]{1L, "AB", 2L, "fx"}, new RowCallbackHandler() {
+//        template.query("select * from table2 where (id,sub_id) in ((?,?),(?,?))", new PreparedStatementSetter() {
+//            @Override
+//            public void setValues(PreparedStatement ps) throws SQLException {
+//                ps.setLong(1, 1L);
+//                ps.setString(2, "Some name");
+//                ps.setLong(3, 2L);
+//                ps.setString(4, "Name");
+//            }
+//        }, new RowCallbackHandler() {
 //            @Override
 //            public void processRow(ResultSet rs) throws SQLException {
 //                System.out.println(rs.getString("ID"));
@@ -62,9 +76,15 @@ public class CoherenceApp {
             .registerResource(BeanFactory.class, SpringContextHolder.getApplicationContext());
 
         final NamedCache test1 = CacheFactory.getCache("Test1");
-        Map m1 = test1.getAll(Arrays.asList(1L, 2L, 3L, 4L, 5L, 6L));
-        test1.put(123L, "BBBBBBBBBBEEEEEEEEEEEEEEEEE");
 
+        Map m1 = test1.getAll(Arrays.asList(1L, 2L, 3L, 4L, 5L, 6L));
+        CounterpartPO c = new CounterpartPO();
+        c.setId(1L);
+        c.setName("New counterpart #1");
+        test1.put(123L, c);
+
+        //////////////////////
+        //PofBufferWriter writer = new PofBufferWriter(buffer, (()test1.getCacheService().getSerializer();
         /////////////////
         final Counterpart cp2 =new Counterpart();
 

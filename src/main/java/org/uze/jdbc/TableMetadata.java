@@ -50,7 +50,7 @@ public class TableMetadata {
         this.keyColumns = ImmutableList.copyOf(keyColumns);
     }
 
-    static class Column {
+    public static class Column {
 
         private final int sqlType;
         private final Class clazz;

@@ -21,8 +21,6 @@ public class DefaultStatementBuilder implements StatementBuilder {
         Objects.requireNonNull(metadata);
         Preconditions.checkArgument(keyCount > 0);
 
-        final List<String> keyColumns = metadata.getKeyColumns();
-        final boolean complexFlag = keyColumns.size() > 1;
         final StringBuilder sb = new StringBuilder();
 
         sb.append("SELECT\n");
@@ -36,48 +34,9 @@ public class DefaultStatementBuilder implements StatementBuilder {
             count++;
         }
 
-        sb.append("\nFROM ").append(metadata.getTableName()).append("\nWHERE ");
+        sb.append("\nFROM ").append(metadata.getTableName());
 
-        if (complexFlag) {
-            sb.append('(');
-        }
-
-        count = 0;
-        for (String columnName : keyColumns) {
-            if (count > 0) {
-                sb.append(',');
-            }
-            sb.append(columnName);
-            count++;
-        }
-
-        if (complexFlag) {
-            sb.append(')');
-        }
-
-        sb.append(" IN (");
-
-        if (complexFlag) {
-            int pos = sb.length();
-            sb.append('?');
-            for (int i = keyColumns.size(); i > 1; i--) {
-                sb.append(",?");
-            }
-            final String keyParams = sb.substring(pos);
-            sb.setLength(pos);
-
-            sb.append('(').append(keyParams).append(')');
-            for (int i = 1; i < keyCount; i++) {
-                sb.append(",(").append(keyParams).append(')');
-            }
-        } else {
-            sb.append('?');
-            for (int i = 1; i < keyCount; i++) {
-                sb.append(",?");
-            }
-        }
-
-        sb.append(')');
+        addWhereInClause(metadata, keyCount, sb);
 
         return sb.toString();
     }
@@ -211,4 +170,80 @@ public class DefaultStatementBuilder implements StatementBuilder {
 
         return sb.toString();
     }
+
+    /**
+     * Builds SQL delete statement with IN clause (complex if key consists of more than one column)
+     *
+     * @return SQL delete statement
+     */
+    @Override
+    public String buildDeleteStatement(TableMetadata metadata, int keyCount) {
+        Objects.requireNonNull(metadata);
+        Preconditions.checkArgument(keyCount > 0);
+
+        final StringBuilder sb = new StringBuilder();
+
+        sb.append("DELETE FROM ").append(metadata.getTableName());
+
+        addWhereInClause(metadata, keyCount, sb);
+
+        return sb.toString();
+    }
+
+    /**
+     * Builds SQL delete statement with IN clause (complex if key consists of more than one column)
+     *
+     * @return SQL delete statement
+     */
+    public void addWhereInClause(TableMetadata metadata, int keyCount, StringBuilder sb) {
+        Objects.requireNonNull(metadata);
+        Preconditions.checkArgument(keyCount > 0);
+
+        final List<String> keyColumns = metadata.getKeyColumns();
+        final boolean complexFlag = keyColumns.size() > 1;
+
+        sb.append("\nWHERE ");
+
+        if (complexFlag) {
+            sb.append('(');
+        }
+
+        int count = 0;
+        for (String columnName : keyColumns) {
+            if (count > 0) {
+                sb.append(',');
+            }
+            sb.append(columnName);
+            count++;
+        }
+
+        if (complexFlag) {
+            sb.append(')');
+        }
+
+        sb.append(" IN (");
+
+        if (complexFlag) {
+            int pos = sb.length();
+            sb.append('?');
+            for (int i = keyColumns.size(); i > 1; i--) {
+                sb.append(",?");
+            }
+            final String keyParams = sb.substring(pos);
+            sb.setLength(pos);
+
+            sb.append('(').append(keyParams).append(')');
+            for (int i = 1; i < keyCount; i++) {
+                sb.append(",(").append(keyParams).append(')');
+            }
+        } else {
+            sb.append('?');
+            for (int i = 1; i < keyCount; i++) {
+                sb.append(",?");
+            }
+        }
+
+        sb.append(')');
+    }
+
 }

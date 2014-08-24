@@ -47,7 +47,7 @@ public class InClauseMipMappingTest {
                 }
             }
 
-            System.out.println("Total steps: " + total + ", min: " + min + ", avg: " + (int) avg + ", max: " + max);
+            System.out.println("Total steps: " + total + ", min: " + min + ", avg: " + avg + ", max: " + max);
         }
     }
 
@@ -93,7 +93,19 @@ public class InClauseMipMappingTest {
         while (current >= minBatch) {
             result.add(current);
 
-            current = current / 2 - 1;
+            int next = current / 2 - 1;
+//            if ((current & 1) == 0){
+//                next--;
+//            }
+            int c = 0;
+            while (getGcd(current, next) > 1) {
+                next--;
+                c++;
+            }
+            if (c > 0) {
+                System.out.println("C = " + c);
+            }
+            current = next;
         }
 
         if (minBatch > 1) {
