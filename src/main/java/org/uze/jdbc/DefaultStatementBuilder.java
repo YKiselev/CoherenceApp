@@ -1,6 +1,7 @@
 package org.uze.jdbc;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 
 import java.util.List;
 import java.util.Objects;
@@ -8,14 +9,15 @@ import java.util.Objects;
 /**
  * Created by Uze on 18.08.2014.
  */
-public class StatementHelper {
+public class DefaultStatementBuilder implements StatementBuilder {
 
     /**
      * Builds SQL select statement with IN clause (complex if key consists of more than one column)
      *
      * @return SQL select statement
      */
-    public static String buildSelectStatement(TableMetadata metadata, int keyCount) {
+    @Override
+    public String buildSelectStatement(TableMetadata metadata, int keyCount) {
         Objects.requireNonNull(metadata);
         Preconditions.checkArgument(keyCount > 0);
 
@@ -80,7 +82,8 @@ public class StatementHelper {
         return sb.toString();
     }
 
-    public static String buildInsertStatement(TableMetadata metadata) {
+    @Override
+    public String buildInsertStatement(TableMetadata metadata) {
         Objects.requireNonNull(metadata);
 
         final StringBuilder sb = new StringBuilder();
@@ -106,7 +109,8 @@ public class StatementHelper {
         return sb.toString();
     }
 
-    public static String buildUpdateStatement(TableMetadata metadata) {
+    @Override
+    public String buildUpdateStatement(TableMetadata metadata) {
         Objects.requireNonNull(metadata);
 
         final StringBuilder sb = new StringBuilder();
@@ -122,19 +126,11 @@ public class StatementHelper {
             count++;
         }
 
-        appendWhereClause(metadata, sb);
-
-        return sb.toString();
-    }
-
-    private static void appendWhereClause(TableMetadata metadata, StringBuilder sb) {
-        Objects.requireNonNull(metadata);
-
         final List<String> keyColumns = metadata.getKeyColumns();
 
         sb.append("\nWHERE ");
 
-        int count = 0;
+        count = 0;
         for (String name : keyColumns) {
             if (count > 0) {
                 sb.append("\n  AND ");
@@ -142,5 +138,77 @@ public class StatementHelper {
             sb.append(name).append("=?");
             count++;
         }
+
+        return sb.toString();
+    }
+
+    @Override
+    public String buildMergeStatement(TableMetadata metadata) {
+        Objects.requireNonNull(metadata);
+
+        final StringBuilder sb = new StringBuilder();
+
+        sb.append("MERGE INTO ").append(metadata.getTableName()).append(" T USING (SELECT ");
+
+        int count = 0;
+        for (String columnName : metadata.getColumns()) {
+            if (count > 0) {
+                sb.append(",");
+            }
+            sb.append("? as ").append(columnName);
+            count++;
+        }
+
+        sb.append(") S ON (");
+
+        count = 0;
+        for (String columnName : metadata.getKeyColumns()) {
+            if (count > 0) {
+                sb.append(" AND ");
+            }
+            sb.append("T.").append(columnName).append(" = S.").append(columnName);
+            count++;
+        }
+
+        sb.append(")\n")
+            .append("WHEN MATCHED THEN UPDATE SET ");
+
+        final List<String> nonKeyColumns = Lists.newArrayList(metadata.getColumns());
+        nonKeyColumns.removeAll(metadata.getKeyColumns());
+        Preconditions.checkArgument(!nonKeyColumns.isEmpty(), "Table has only key columns!");
+
+        count = 0;
+        for (String columnName : nonKeyColumns) {
+            if (count > 0) {
+                sb.append(",");
+            }
+            sb.append("T.").append(columnName).append(" = S.").append(columnName);
+            count++;
+        }
+
+        sb.append("\n")
+            .append("WHEN NOT MATCHED THEN INSERT (");
+
+        count = 0;
+        for (String columnName : metadata.getColumns()) {
+            if (count > 0) {
+                sb.append(",");
+            }
+            sb.append(columnName);
+            count++;
+        }
+
+        sb.append(") VALUES (");
+        count = 0;
+        for (String columnName : metadata.getColumns()) {
+            if (count > 0) {
+                sb.append(",");
+            }
+            sb.append("S.").append(columnName);
+            count++;
+        }
+        sb.append(")");
+
+        return sb.toString();
     }
 }

@@ -15,19 +15,19 @@ import static org.hamcrest.Matchers.*;
  * select C
  * from t
  * where (K) in ((?),(?),(?))
- *
+ * <p/>
  * batch
  * C - with key columns
  * insert into t (C)
  * select Cv from dual
  * where not exists (select null from t where K1 = ?, K2 = ?)
- *
+ * <p/>
  * batch
  * C - without key columns
  * update t
  * set C = Cv,...
  * where K = ?
- *
+ * <p/>
  * * Created by Uze on 18.08.2014.
  */
 public class TableMetadataBuilderTest {
@@ -53,6 +53,8 @@ public class TableMetadataBuilderTest {
         .column("GROUP_ID", Types.NUMERIC, Long.class)
         .build();
 
+    private final StatementBuilder statementBuilder = new OracleStatementBuilder();
+
     @Test
     public void testKey() throws Exception {
         final TableMetadata md = new TableMetadataBuilder("TABLE1")
@@ -74,10 +76,11 @@ public class TableMetadataBuilderTest {
 
     @Test
     public void testMultyKeySelectStatement() throws Exception {
-        final String sql = StatementHelper.buildSelectStatement(MULTI_COLUMN_KEY_TABLE_METADATA, 20);
+        final String sql = statementBuilder.buildSelectStatement(MULTI_COLUMN_KEY_TABLE_METADATA, 20);
         Assert.assertNotNull(sql);
 
-        final Pattern pattern = Pattern.compile("\\s*SELECT\\s+(.+)\\s+FROM\\s+(.+)\\s+WHERE\\s*\\((.+)\\)\\s*IN\\s*\\((.+)\\)", Pattern.CASE_INSENSITIVE + Pattern.DOTALL);
+        final Pattern pattern = Pattern.compile("\\s*SELECT\\s+(.+)\\s+FROM\\s+(.+)\\s+WHERE\\s*\\((.+)\\)\\s*IN\\s*\\((.+)\\)",
+            Pattern.CASE_INSENSITIVE + Pattern.DOTALL);
 
         final Matcher m = pattern.matcher(sql);
         Assert.assertTrue(m.matches());
@@ -97,10 +100,11 @@ public class TableMetadataBuilderTest {
 
     @Test
     public void testSimpleKeySelectStatement() throws Exception {
-        final String sql = StatementHelper.buildSelectStatement(SINGLE_COLUMN_KEY_TABLE_METADATA, 7);
+        final String sql = statementBuilder.buildSelectStatement(SINGLE_COLUMN_KEY_TABLE_METADATA, 7);
         Assert.assertNotNull(sql);
 
-        final Pattern pattern = Pattern.compile("\\s*SELECT\\s+(.+)\\s+FROM\\s+(.+)\\s+WHERE\\s*(.+)\\s*IN\\s*\\((.+)\\)", Pattern.CASE_INSENSITIVE + Pattern.DOTALL);
+        final Pattern pattern = Pattern.compile("\\s*SELECT\\s+(.+)\\s+FROM\\s+(.+)\\s+WHERE\\s*(.+)\\s*IN\\s*\\((.+)\\)",
+            Pattern.CASE_INSENSITIVE + Pattern.DOTALL);
 
         final Matcher m = pattern.matcher(sql);
         Assert.assertTrue(m.matches());
@@ -119,11 +123,11 @@ public class TableMetadataBuilderTest {
     }
 
     @Test
-    public void testMultyKeyInsertStatement() throws Exception {
-        final String sql = StatementHelper.buildInsertStatement(MULTI_COLUMN_KEY_TABLE_METADATA);
+    public void testInsertStatement() throws Exception {
+        final String sql = statementBuilder.buildInsertStatement(MULTI_COLUMN_KEY_TABLE_METADATA);
         Assert.assertNotNull(sql);
 
-        final Pattern pattern = Pattern.compile("\\s*INSERT\\s+INTO\\s+(.+)\\s*\\((.+)\\)\\s*SELECT\\s*(.+)\\s+FROM DUAL\\s+WHERE\\s*NOT\\s+EXISTS\\s*\\(\\s*SELECT\\s+NULL\\s+FROM\\s+(.+)\\s+WHERE\\s+(.+)\\)",
+        final Pattern pattern = Pattern.compile("\\s*INSERT\\s+INTO\\s+(.+)\\s*\\((.+)\\)\\s*VALUES\\s*\\((.+)\\)",
             Pattern.CASE_INSENSITIVE + Pattern.DOTALL);
 
         final Matcher m = pattern.matcher(sql);
@@ -137,20 +141,15 @@ public class TableMetadataBuilderTest {
 
         final String[] values = m.group(3).split(",");
         Assert.assertThat(values, arrayWithSize(7));
-
-        final String[] tables2 = m.group(4).split(",");
-        Assert.assertThat(tables2, arrayWithSize(1));
-
-        final String[] keys = m.group(5).split("\\s+AND\\s+");
-        Assert.assertThat(keys, arrayWithSize(2));
     }
 
     @Test
     public void testUpdateStatement() throws Exception {
-        final String sql = StatementHelper.buildUpdateStatement(MULTI_COLUMN_KEY_TABLE_METADATA);
+        final String sql = statementBuilder.buildUpdateStatement(MULTI_COLUMN_KEY_TABLE_METADATA);
         Assert.assertNotNull(sql);
 
-        final Pattern pattern = Pattern.compile("\\s*UPDATE\\s+(.+)\\s+SET\\s+(.+)\\s+WHERE\\s+(.+)", Pattern.CASE_INSENSITIVE + Pattern.DOTALL);
+        final Pattern pattern = Pattern.compile("\\s*UPDATE\\s+(.+)\\s+SET\\s+(.+)\\s+WHERE\\s+(.+)",
+            Pattern.CASE_INSENSITIVE + Pattern.DOTALL);
 
         final Matcher m = pattern.matcher(sql);
         Assert.assertTrue(m.matches());
@@ -165,4 +164,38 @@ public class TableMetadataBuilderTest {
         Assert.assertThat(keys, arrayWithSize(2));
     }
 
+    @Test
+    public void testMergeStatement() throws Exception {
+        final String sql = statementBuilder.buildMergeStatement(MULTI_COLUMN_KEY_TABLE_METADATA);
+        Assert.assertNotNull(sql);
+
+        final Pattern pattern = Pattern.compile("\\s*MERGE\\s+INTO\\s+(.+)\\s+USING\\s*\\(\\s*SELECT\\s+(.+)\\s+FROM\\s+DUAL\\)\\s+(\\w)\\s*ON\\s*\\((.+)\\)\\s+" +
+                "WHEN\\s+MATCHED\\s+THEN\\s+UPDATE\\s+SET\\s+(.+)\\s+" +
+                "WHEN\\s+NOT\\s+MATCHED\\s+THEN\\s+INSERT\\s*\\((.+)\\)\\s*VALUES\\s*\\((.+)\\)",
+            Pattern.CASE_INSENSITIVE + Pattern.DOTALL);
+
+        final Matcher m = pattern.matcher(sql);
+        Assert.assertTrue(m.matches());
+
+        final String[] tables = m.group(1).split(",");
+        Assert.assertThat(tables, arrayWithSize(1));
+
+        final String[] using = m.group(2).split(",");
+        Assert.assertThat(using, arrayWithSize(7));
+
+        final String alias = m.group(3);
+        Assert.assertEquals("S", alias);
+
+        final String[] on = m.group(4).split("\\s+AND\\s+");
+        Assert.assertThat(on, arrayWithSize(2));
+
+        final String[] update = m.group(5).split(",");
+        Assert.assertThat(update, arrayWithSize(5));
+
+        final String[] columns = m.group(6).split(",");
+        Assert.assertThat(columns, arrayWithSize(7));
+
+        final String[] values = m.group(7).split(",");
+        Assert.assertThat(values, arrayWithSize(7));
+    }
 }

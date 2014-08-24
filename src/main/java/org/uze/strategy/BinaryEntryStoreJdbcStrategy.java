@@ -3,6 +3,7 @@ package org.uze.strategy;
 import com.tangosol.util.BinaryEntry;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.uze.jdbc.StatementBuilder;
 import org.uze.jdbc.TableMetadata;
 
 import java.util.Set;
@@ -10,11 +11,25 @@ import java.util.Set;
 /**
  * Created by Uze on 16.08.2014.
  */
-public class BinaryEntryStoreJdbcStrategy implements BinaryEntryStoreStrategy, InitializingBean {
+public class BinaryEntryStoreJdbcStrategy implements BinaryEntryStoreStrategy {
 
     private int batchSize = 1000;
     private JdbcTemplate jdbcTemplate;
     private TableMetadata tableMetadata;
+    private StatementBuilder statementBuilder;
+    private String selectStatement;
+    private String insertStatement;
+    private String updateStatement;
+    private String deleteStatement;
+    private String mergeStatement;
+
+    public StatementBuilder getStatementBuilder() {
+        return statementBuilder;
+    }
+
+    public void setStatementBuilder(StatementBuilder statementBuilder) {
+        this.statementBuilder = statementBuilder;
+    }
 
     public JdbcTemplate getJdbcTemplate() {
         return jdbcTemplate;
@@ -38,10 +53,6 @@ public class BinaryEntryStoreJdbcStrategy implements BinaryEntryStoreStrategy, I
 
     public void setTableMetadata(TableMetadata tableMetadata) {
         this.tableMetadata = tableMetadata;
-    }
-
-    @Override
-    public void afterPropertiesSet() throws Exception {
     }
 
     @Override

@@ -38,6 +38,9 @@
 
     <bean id="ch-app.binaryEntryStoreJdbcStrategy" class="org.uze.strategy.BinaryEntryStoreJdbcStrategy">
         <property name="jdbcTemplate" ref="ch-app.jdbcTemplate"/>
+        <property name="statementBuilder">
+            <bean class="org.uze.jdbc.OracleStatementBuilder"/>
+        </property>
         <property name="batchSize" value="1000"/>
     </bean>
 
