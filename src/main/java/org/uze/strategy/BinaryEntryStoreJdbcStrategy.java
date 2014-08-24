@@ -1,19 +1,16 @@
 package org.uze.strategy;
 
-import com.google.common.collect.Iterables;
 import com.tangosol.util.BinaryEntry;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowCallbackHandler;
 import org.uze.jdbc.TableMetadata;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.List;
+import java.util.Set;
 
 /**
  * Created by Uze on 16.08.2014.
  */
-public class BinaryEntryStoreJdbcStrategy implements BinaryEntryStoreStrategy {
+public class BinaryEntryStoreJdbcStrategy implements BinaryEntryStoreStrategy, InitializingBean {
 
     private int batchSize = 1000;
     private JdbcTemplate jdbcTemplate;
@@ -44,29 +41,33 @@ public class BinaryEntryStoreJdbcStrategy implements BinaryEntryStoreStrategy {
     }
 
     @Override
-    public void load(Iterable<BinaryEntry> entries) {
-        jdbcTemplate.query("", new RowCallbackHandler() {
-            @Override
-            public void processRow(ResultSet resultSet) throws SQLException {
-                //
-            }
-        });
-        for (List<BinaryEntry> batch : Iterables.partition(entries, batchSize)) {
-
-        }
+    public void afterPropertiesSet() throws Exception {
     }
 
     @Override
-    public void store(Iterable<BinaryEntry> entries) {
-        for (List<BinaryEntry> batch : Iterables.partition(entries, batchSize)) {
-
-        }
+    public void load(Set<BinaryEntry> entries) {
+//        jdbcTemplate.query("", new RowCallbackHandler() {
+//            @Override
+//            public void processRow(ResultSet resultSet) throws SQLException {
+//                //
+//            }
+//        });
+//        for (List<BinaryEntry> batch : Iterables.partition(entries, batchSize)) {
+//
+//        }
     }
 
     @Override
-    public void erase(Iterable<BinaryEntry> entries) {
-        for (List<BinaryEntry> batch : Iterables.partition(entries, batchSize)) {
+    public void store(Set<BinaryEntry> entries) {
+//        for (List<BinaryEntry> batch : Iterables.partition(entries, batchSize)) {
+//
+//        }
+    }
 
-        }
+    @Override
+    public void erase(Set<BinaryEntry> entries) {
+//        for (List<BinaryEntry> batch : Iterables.partition(entries, batchSize)) {
+//
+//        }
     }
 }

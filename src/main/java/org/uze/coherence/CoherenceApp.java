@@ -5,6 +5,7 @@ import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.internal.SessionOptimisticPut;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -40,7 +41,7 @@ public class CoherenceApp {
     public static void main(String[] args) throws Exception {
         Locale.setDefault(Locale.ENGLISH);
 
-        final NamedParameterJdbcTemplate template = SpringContextHolder.getBean("ch-app.jdbcTemplate", NamedParameterJdbcTemplate.class);
+        final JdbcTemplate template = SpringContextHolder.getBean("ch-app.jdbcTemplate", JdbcTemplate.class);
 //
 //        MapSqlParameterSource ps = new MapSqlParameterSource();
 //        ps.addValue("ids", Arrays.asList(1,"AB"));

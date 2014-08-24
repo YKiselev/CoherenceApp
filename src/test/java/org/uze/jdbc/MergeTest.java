@@ -1,12 +1,11 @@
 package org.uze.jdbc;
 
-import junit.framework.Assert;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcOperations;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContextManager;
@@ -61,10 +60,10 @@ public class MergeTest {
         }
     }
 
-    public static final int TEST_RUN_COUNT = 270;
+    public static final int TEST_RUN_COUNT = 3;
     public static final int TEST_DATA_SIZE = 1000;
     @Autowired
-    private NamedParameterJdbcTemplate template;
+    private JdbcTemplate template;
     @Autowired
     private PlatformTransactionManager txManager;
     private final List<Item> items;
@@ -164,7 +163,7 @@ public class MergeTest {
     }
 
     private void mergeOneByOne(Iterable<Item> items) {
-        final JdbcOperations operations = template.getJdbcOperations();
+        final JdbcOperations operations = template;//. .getJdbcOperations();
 
         for (Item current : items) {
             int count = operations.update("update Test1 set NAME=? where ID=?",
@@ -180,7 +179,7 @@ public class MergeTest {
     }
 
     private void mergeWithDumbBatch(List<Item> items) {
-        final JdbcOperations operations = template.getJdbcOperations();
+        final JdbcOperations operations = template;//.getJdbcOperations();
         final List<Object[]> batchArgs = new ArrayList<>(items.size());
         final List<Object[]> batchArgs2 = new ArrayList<>(items.size());
         for (Item item : items) {
@@ -196,7 +195,7 @@ public class MergeTest {
     }
 
     private void mergeWithMerge(List<Item> items) {
-        final JdbcOperations operations = template.getJdbcOperations();
+        final JdbcOperations operations = template;//.getJdbcOperations();
         final List<Object[]> batchArgs = new ArrayList<>(items.size());
         for (Item item : items) {
             batchArgs.add(new Object[]{item.getId(), item.getName()});

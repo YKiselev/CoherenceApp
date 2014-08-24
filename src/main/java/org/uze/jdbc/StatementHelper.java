@@ -96,17 +96,12 @@ public class StatementHelper {
             count++;
         }
 
-        sb.append(")\nSELECT ?");
+        sb.append(")\nVALUES(?");
         for (int i = 1; i < count; i++) {
             sb.append(",?");
         }
 
-        sb.append("\nFROM DUAL\nWHERE NOT EXISTS (SELECT NULL FROM ")
-            .append(metadata.getTableName());
-
-        appendWhereClause(metadata, sb);
-
-        sb.append(')');
+        sb.append(")");
 
         return sb.toString();
     }

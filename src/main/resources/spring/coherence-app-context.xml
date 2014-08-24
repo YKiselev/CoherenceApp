@@ -2,8 +2,12 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:context="http://www.springframework.org/schema/context"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
-       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:annotation-config/>
 
     <tx:annotation-driven transaction-manager="txManager" />
 
@@ -27,14 +31,25 @@
 
     <!--<bean id="ch-app.cacheFactory" class="org.uze.spring.SpringAwareCacheFactory"/>-->
 
-    <bean id="ch-app.jdbcTemplate" class="org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate">
+    <bean id="ch-app.jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
         <constructor-arg ref="ch-app.dataSource"/>
+        <!--<property name="maxRows" value="1000000"/>-->
     </bean>
 
-    <bean id="ch-app.parentStore" class="org.uze.stores.BaseJdbcBinaryEntryStore" abstract="true">
+    <bean id="ch-app.binaryEntryStoreJdbcStrategy" class="org.uze.strategy.BinaryEntryStoreJdbcStrategy">
         <property name="jdbcTemplate" ref="ch-app.jdbcTemplate"/>
         <property name="batchSize" value="1000"/>
     </bean>
 
-    <bean id="ch-app.test1Store" class="org.uze.stores.Test1Store" parent="ch-app.parentStore"/>
+    <bean id="ch-app.test1Strategy" parent="ch-app.binaryEntryStoreJdbcStrategy">
+        <property name="batchSize" value="500"/>
+    </bean>
+
+    <bean id="ch-app.parentStore" class="org.uze.stores.BaseBinaryEntryStore" abstract="true">
+        <property name="strategy" ref="ch-app.binaryEntryStoreJdbcStrategy"/>
+    </bean>
+
+    <bean id="ch-app.test1Store" class="org.uze.stores.Test1Store" parent="ch-app.parentStore">
+        <property name="strategy" ref="ch-app.test1Strategy"/>
+    </bean>
 </beans>

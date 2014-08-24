@@ -1,6 +1,5 @@
 package org.uze.stores;
 
-import com.google.common.collect.Iterables;
 import com.tangosol.net.cache.BinaryEntryStore;
 import com.tangosol.util.BinaryEntry;
 import org.uze.strategy.BinaryEntryStoreStrategy;
@@ -36,8 +35,9 @@ public class BaseBinaryEntryStore implements BinaryEntryStore {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void loadAll(Set set) {
-        strategy.load(Iterables.filter(set, BinaryEntry.class));
+        strategy.load(set);
     }
 
     @Override
@@ -46,8 +46,9 @@ public class BaseBinaryEntryStore implements BinaryEntryStore {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void storeAll(Set set) {
-        strategy.store(Iterables.filter(set, BinaryEntry.class));
+        strategy.store(set);
     }
 
     @Override
@@ -56,7 +57,8 @@ public class BaseBinaryEntryStore implements BinaryEntryStore {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void eraseAll(Set set) {
-        strategy.erase(Iterables.filter(set, BinaryEntry.class));
+        strategy.erase(set);
     }
 }
