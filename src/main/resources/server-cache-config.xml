@@ -151,7 +151,7 @@
                         </class-scheme>
                     </cachestore-scheme>
                     <read-only>false</read-only>
-                    <write-delay>5s</write-delay>
+                    <!--<write-delay>5s</write-delay>-->
                 </read-write-backing-map-scheme>
             </backing-map-scheme>
             <autostart>true</autostart>

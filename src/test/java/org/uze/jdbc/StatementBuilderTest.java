@@ -65,10 +65,10 @@ public class StatementBuilderTest {
             .build();
 
         Assert.assertNotNull(md);
-        Assert.assertThat(md.getKeyColumns(), hasSize(2));
-        Assert.assertThat(md.getKeyColumns(), hasItems("ID", "COB"));
-//        Assert.assertThat(md.getColumns(), hasEntry(is("ID"), equalTo(new TableMetadata.Column(Types.INTEGER, int.class))));
-//        Assert.assertThat(md.getColumns(), Matchers.<String, TableMetadata.Column>hasEntry(is("ID"), allOf(
+        Assert.assertThat(md.getKeyColumnNames(), hasSize(2));
+        Assert.assertThat(md.getKeyColumnNames(), hasItems("ID", "COB"));
+//        Assert.assertThat(md.getColumnNames(), hasEntry(is("ID"), equalTo(new TableMetadata.Column(Types.INTEGER, int.class))));
+//        Assert.assertThat(md.getColumnNames(), Matchers.<String, TableMetadata.Column>hasEntry(is("ID"), allOf(
 //                hasProperty("sqlType", is(Types.INTEGER)),
 //                hasProperty("clazz", isA(int.class))
 //        )));

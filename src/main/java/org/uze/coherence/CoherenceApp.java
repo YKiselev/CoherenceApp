@@ -1,33 +1,25 @@
 package org.uze.coherence;
 
-import com.google.common.base.Charsets;
-import com.tangosol.io.ByteArrayWriteBuffer;
 import com.tangosol.io.Serializer;
+import com.tangosol.io.WriteBuffer;
 import com.tangosol.io.pof.PofBufferWriter;
-import com.tangosol.io.pof.PofSerializer;
+import com.tangosol.io.pof.PofContext;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.net.CacheFactory;
-import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
-import com.tangosol.net.internal.SessionOptimisticPut;
 import com.tangosol.util.Binary;
 import com.tangosol.util.BinaryWriteBuffer;
+import com.tangosol.util.ExternalizableHelper;
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.PreparedStatementSetter;
-import org.springframework.jdbc.core.RowCallbackHandler;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.uze.caches.CacheAccess;
 import org.uze.client.Counterpart;
 import org.uze.client.Trade;
 import org.uze.pof.CounterpartPO;
 import org.uze.spring.SpringContextHolder;
 
-import java.io.*;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.StreamTokenizer;
 import java.util.*;
 
 /**
@@ -38,37 +30,18 @@ import java.util.*;
 public class CoherenceApp {
 
     private static final String USAGE = "Usage:" +
-            "\n\tcache <name>" +
-            "\n\tput key value" +
-            "\n\tget key" +
-            "\n\tremove key" +
-            "\n\tlist" +
-            "\n\tbye" +
-            "\n\n Don't forget to set right coherence config via -Dtangosol.coherence.cacheconfig=<cache-config.xml>!";
+        "\n\tcache <name>" +
+        "\n\tput key value" +
+        "\n\tget key" +
+        "\n\tremove key" +
+        "\n\tlist" +
+        "\n\tbye" +
+        "\n\n Don't forget to set right coherence config via -Dtangosol.coherence.cacheconfig=<cache-config.xml>!";
     private static boolean exitFlag;
     private static CacheAccess cache;
 
     public static void main(String[] args) throws Exception {
         Locale.setDefault(Locale.ENGLISH);
-
-//        final JdbcTemplate template = SpringContextHolder.getBean("ch-app.jdbcTemplate", JdbcTemplate.class);
-//
-//        template.query("select * from table2 where (id,sub_id) in ((?,?),(?,?))", new PreparedStatementSetter() {
-//            @Override
-//            public void setValues(PreparedStatement ps) throws SQLException {
-//                ps.setLong(1, 1L);
-//                ps.setString(2, "Some name");
-//                ps.setLong(3, 2L);
-//                ps.setString(4, "Name");
-//            }
-//        }, new RowCallbackHandler() {
-//            @Override
-//            public void processRow(ResultSet rs) throws SQLException {
-//                System.out.println(rs.getString("ID"));
-//            }
-//        });
-//
-//        System.exit(0);
 
         CacheFactory.getCacheFactoryBuilder()
             .getConfigurableCacheFactory(CoherenceApp.class.getClassLoader())
@@ -76,23 +49,55 @@ public class CoherenceApp {
             .registerResource(BeanFactory.class, SpringContextHolder.getApplicationContext());
 
         final NamedCache test1 = CacheFactory.getCache("Test1");
+        final Serializer serializer = test1.getCacheService().getSerializer();
+        CounterpartPO c1 = new CounterpartPO();
+        c1.setId(123L);
+        c1.setName("John Doe");
 
-        Map m1 = test1.getAll(Arrays.asList(1L, 2L, 3L, 4L, 5L, 6L));
-        CounterpartPO c = new CounterpartPO();
-        c.setId(1L);
-        c.setName("New counterpart #1");
-        test1.put(123L, c);
+        final PofContext pofContext = (PofContext) serializer;
 
-        //////////////////////
-        //PofBufferWriter writer = new PofBufferWriter(buffer, (()test1.getCacheService().getSerializer();
+        final Binary b1 = ExternalizableHelper.toBinary(c1, serializer);
+        final Binary b12 = toBinary(c1, pofContext);
+
+        c1.setName(null);
+        final Binary b2 = ExternalizableHelper.toBinary(c1, serializer);
+        final Binary b22 = toBinary(c1, pofContext);
+
+        c1.setId(null);
+        c1.setName("John Doe");
+        final Binary b3 = ExternalizableHelper.toBinary(c1, serializer);
+        final Binary b32 = toBinary(c1, pofContext);
+
+        c1.setId(null);
+        c1.setName(null);
+        final Binary b4 = ExternalizableHelper.toBinary(c1, serializer);
+        final Binary b42 = toBinary(c1, pofContext);
+
+        System.out.println(b1 + ", " + b12);
+        System.out.println(b2 + ", " + b22);
+        System.out.println(b3 + ", " + b32);
+        System.out.println(b4 + ", " + b42);
+
+        //System.exit(0);
+
+        final Map m1 = test1.getAll(Arrays.asList(1L, 2L, 3L, 4L, 5L, 6L));
+        System.out.println("Result map: " + m1);
+
+        System.exit(0);
+
+//        CounterpartPO c = new CounterpartPO();
+//        c.setId(1L);
+//        c.setName("New counterpart #1");
+//        test1.put(123L, c);
+
         /////////////////
-        final Counterpart cp2 =new Counterpart();
-
-        cp2.setId(1L);
-        cp2.setName("New user #2");
-
-        final Counterpart oldcp = CacheAccess.COUNTERPARTS.put(cp2.getId(), cp2);
-        System.out.println("Old cp: "+oldcp);
+//        final Counterpart cp2 = new Counterpart();
+//
+//        cp2.setId(1L);
+//        cp2.setName("New user #2");
+//
+//        final Counterpart oldcp = CacheAccess.COUNTERPARTS.put(cp2.getId(), cp2);
+//        System.out.println("Old cp: " + oldcp);
         ///////////////
 
         // check raw cache items
@@ -139,6 +144,24 @@ public class CoherenceApp {
                     System.out.print("Unknown token: " + i);
             }
         }
+    }
+
+    private static Binary toBinary(CounterpartPO cp, PofContext pofContext) throws IOException {
+        final BinaryWriteBuffer b = new BinaryWriteBuffer(200);
+        final WriteBuffer.BufferOutput bo = b.getBufferOutput();
+        final PofWriter writer = new PofBufferWriter.UserTypeWriter(bo, pofContext, 1002, -1);
+
+        bo.writeByte(21);
+        //if (cp.getId() == null) {
+            writer.writeObject(0, cp.getId());
+//        } else {
+//            writer.writeLong(0, cp.getId());
+//        }
+        writer.writeString(1, cp.getName());
+
+        writer.writeRemainder(null);
+
+        return b.toBinary();
     }
 
     private static void fillDatabase() {
