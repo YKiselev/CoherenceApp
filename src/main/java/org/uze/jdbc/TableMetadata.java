@@ -19,22 +19,20 @@ public class TableMetadata {
     public static final int MIN_USER_TYPE_ID = 1000;
 
     private final String tableName;
-    private final ImmutableList<String> valueColumnNames;
-    private final ImmutableList<String> keyColumnNames;
+    private final UserTypeColumns key;
+    private final UserTypeColumns value;
     private final ImmutableMap<String, Column> columnMap;
-    private final int keyUserTypeId;
-    private final int valueUserTypeId;
 
     public String getTableName() {
         return tableName;
     }
 
-    public List<String> getKeyColumnNames() {
-        return keyColumnNames;
+    public UserTypeColumns getKey() {
+        return key;
     }
 
-    public List<String> getValueColumnNames() {
-        return valueColumnNames;
+    public UserTypeColumns getValue() {
+        return value;
     }
 
     public ImmutableCollection<Column> getColumns() {
@@ -47,26 +45,6 @@ public class TableMetadata {
 
     public Column getColumn(String name) {
         return columnMap.get(name);
-    }
-
-    public int getKeyUserTypeId() {
-        return keyUserTypeId;
-    }
-
-    public int getValueUserTypeId() {
-        return valueUserTypeId;
-    }
-
-    public boolean isSimpleKey() {
-        return keyColumnNames.size() == 1;
-    }
-
-    public String getSimpleKeyColumnName() {
-        return isSimpleKey() ? keyColumnNames.get(0) : null;
-    }
-
-    public Column getSimpleKeyColumn(){
-        return isSimpleKey() ? columnMap.get(getSimpleKeyColumnName()) : null;
     }
 
     private TableMetadata(String tableName, Iterable<Builder.BuilderColumn> columns, Iterable<String> keyColumnNames, int valueUserTypeId, int keyUserTypeId) {
@@ -87,44 +65,50 @@ public class TableMetadata {
 
         this.tableName = tableName;
         this.columnMap = mapBuilder.build();
-        this.valueColumnNames = listBuilder.build();
-        this.keyColumnNames = ImmutableList.copyOf(keyColumnNames);
-        this.valueUserTypeId = valueUserTypeId;
-        this.keyUserTypeId = keyUserTypeId;
-
-        Preconditions.checkArgument(getKeyColumnNames().size() == 1 || keyUserTypeId >= MIN_USER_TYPE_ID, "Illegal key user type id: " + keyUserTypeId);
+        this.key = new UserTypeColumnsImpl(keyUserTypeId, ImmutableList.copyOf(keyColumnNames));
+        this.value = new UserTypeColumnsImpl(valueUserTypeId, listBuilder.build());
     }
 
-    public static class Column {
+    private class UserTypeColumnsImpl implements UserTypeColumns {
 
-        private final int sqlType;
-        private final Class clazz;
-        private final boolean keyOnly;
+        private final int userTypeId;
+        private final ImmutableList<String> names;
 
-        public int getSqlType() {
-            return sqlType;
-        }
-
-        public Class getClazz() {
-            return clazz;
-        }
-
-        public boolean isKeyOnly() {
-            return keyOnly;
-        }
-
-        Column(int sqlType, Class clazz, boolean keyOnly) {
-            this.sqlType = sqlType;
-            this.clazz = clazz;
-            this.keyOnly = keyOnly;
+        @Override
+        public int getUserTypeId() {
+            return userTypeId;
         }
 
         @Override
-        public String toString() {
-            return "Column{" +
-                "sqlType=" + sqlType +
-                ", clazz=" + clazz +
-                '}';
+        public ImmutableList<String> getNames() {
+            return names;
+        }
+
+        @Override
+        public int getSize() {
+            return names.size();
+        }
+
+        @Override
+        public Column getColumn(String name) {
+            return columnMap.get(name);
+        }
+
+        @Override
+        public Column getColumn(int index) {
+            return columnMap.get(names.get(index));
+        }
+
+        @Override
+        public String getName(int index) {
+            return names.get(index);
+        }
+
+        public UserTypeColumnsImpl(int userTypeId, ImmutableList<String> names) {
+            Preconditions.checkArgument(names.size() == 1 || userTypeId >= MIN_USER_TYPE_ID, "Illegal user type id: " + userTypeId);
+
+            this.userTypeId = userTypeId;
+            this.names = names;
         }
     }
 

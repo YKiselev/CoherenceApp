@@ -2,22 +2,16 @@ package org.uze.stores;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
-import com.tangosol.io.WriteBuffer;
-import com.tangosol.io.pof.PofBufferWriter;
 import com.tangosol.io.pof.PofContext;
-import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.reflect.PofValue;
 import com.tangosol.io.pof.reflect.PofValueParser;
 import com.tangosol.io.pof.reflect.SimplePofValue;
 import com.tangosol.util.Binary;
 import com.tangosol.util.BinaryEntry;
-import com.tangosol.util.BinaryWriteBuffer;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.jdbc.core.RowCallbackHandler;
-import org.uze.jdbc.ResultSetHelper;
-import org.uze.jdbc.StatementBuilder;
-import org.uze.jdbc.TableMetadata;
+import org.uze.jdbc.*;
 import org.uze.pof.BinaryHelper;
 
 import java.io.IOException;
@@ -108,7 +102,6 @@ public class BaseJdbcBinaryEntryStore extends AbstractBinaryEntryStore {
             final String sql = getSelectStatement(chunk);
             final SelectChunk selectChunk = new SelectChunk(tableMetadata, entries.subList(offset, offset + chunk));
 
-            System.out.println("Select chunk: " + chunk);
             jdbcTemplate.query(sql, selectChunk, selectChunk);
 
             left -= chunk;
@@ -141,7 +134,7 @@ public class BaseJdbcBinaryEntryStore extends AbstractBinaryEntryStore {
 
         private final TableMetadata metadata;
         private final List<BinaryEntry> entries;
-        private final Map<Object, BinaryEntry> key2entryMap = new HashMap<>();
+        private final Map<Object, BinaryEntry> entryIndexMap = new HashMap<>();
         private PofContext pofContext;
 
         SelectChunk(TableMetadata metadata, List<BinaryEntry> entries) {
@@ -160,20 +153,20 @@ public class BaseJdbcBinaryEntryStore extends AbstractBinaryEntryStore {
                 final Binary key = entry.getBinaryKey();
 
                 try {
-                    key2entryMap.put(createKey(key), entry);
+                    entryIndexMap.put(createKey(key), entry);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
 
                 final PofValue pofValue = PofValueParser.parse(key, (PofContext) entry.getSerializer());
-                final List<String> keyColumns = metadata.getKeyColumnNames();
+                final List<String> keyColumns = metadata.getKey().getNames();
                 final int keySize = keyColumns.size();
                 if (keySize == 1) {
-                    final TableMetadata.Column column = metadata.getColumn(keyColumns.get(0));
+                    final Column column = metadata.getColumn(keyColumns.get(0));
                     ps.setObject(i + 1, pofValue.getValue(column.getClazz()), column.getSqlType());
                 } else {
                     for (int k = 0; k < keySize; k++) {
-                        final TableMetadata.Column column = metadata.getColumn(keyColumns.get(k));
+                        final Column column = metadata.getColumn(keyColumns.get(k));
                         final PofValue value = pofValue.getChild(k);
 
                         ps.setObject(i + k + 1, value.getValue(column.getClazz()), column.getSqlType());
@@ -192,26 +185,27 @@ public class BaseJdbcBinaryEntryStore extends AbstractBinaryEntryStore {
             }
             final Binary value;
             try {
-                value = BinaryHelper.toBinary(new ResultSetValueExtractor(metadata, rs, false), pofContext);
+                value = BinaryHelper.toBinary(new ResultSetValueExtractor(metadata.getValue(), rs), pofContext);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
 
-            final BinaryEntry entry = key2entryMap.get(key);
+            final BinaryEntry entry = entryIndexMap.get(key);
             Objects.requireNonNull(entry);
 
             entry.updateBinaryValue(value);
         }
 
         private Object createKey(ResultSet rs) throws IOException, SQLException {
-            if (metadata.isSimpleKey()) {
-                final String name = metadata.getSimpleKeyColumnName();
-                final TableMetadata.Column column = metadata.getColumn(name);
+            final UserTypeColumns key = metadata.getKey();
+            if (key.getSize() == 1) {
+                final String name = key.getName(0);
+                final Column column = metadata.getColumn(name);
                 final int columnIndex = rs.findColumn(name);
                 return ResultSetHelper.getValue(rs, columnIndex, column.getClazz());
             }
 
-            return BinaryHelper.toBinary(new ResultSetValueExtractor(metadata, rs, true), pofContext);
+            return BinaryHelper.toBinary(new ResultSetValueExtractor(key, rs), pofContext);
         }
 
         private Object createKey(Binary key) throws IOException {
@@ -221,7 +215,7 @@ public class BaseJdbcBinaryEntryStore extends AbstractBinaryEntryStore {
                 return pofValue.getValue();
             }
 
-            return BinaryHelper.toBinary(new KeyBinaryValueExtractor(metadata, pofValue), pofContext);
+            return BinaryHelper.toBinary(new UserTypeValueExtractor(metadata.getKey(), pofValue), pofContext);
         }
     }
 }
