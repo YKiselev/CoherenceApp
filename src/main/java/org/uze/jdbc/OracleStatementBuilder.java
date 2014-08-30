@@ -20,7 +20,7 @@ public class OracleStatementBuilder extends DefaultStatementBuilder {
         sb.append("MERGE INTO ").append(metadata.getTableName()).append(" T USING (SELECT ");
 
         int count = 0;
-        for (String columnName : metadata.getColumnNames()) {
+        for (String columnName : metadata.getValueColumnNames()) {
             if (count > 0) {
                 sb.append(",");
             }
@@ -42,7 +42,7 @@ public class OracleStatementBuilder extends DefaultStatementBuilder {
         sb.append(")\n")
             .append("WHEN MATCHED THEN UPDATE SET ");
 
-        final List<String> nonKeyColumns = Lists.newArrayList(metadata.getColumnNames());
+        final List<String> nonKeyColumns = Lists.newArrayList(metadata.getValueColumnNames());
         nonKeyColumns.removeAll(metadata.getKeyColumnNames());
         Preconditions.checkArgument(!nonKeyColumns.isEmpty(), "Table has only key columns!");
 
@@ -59,7 +59,7 @@ public class OracleStatementBuilder extends DefaultStatementBuilder {
             .append("WHEN NOT MATCHED THEN INSERT (");
 
         count = 0;
-        for (String columnName : metadata.getColumnNames()) {
+        for (String columnName : metadata.getValueColumnNames()) {
             if (count > 0) {
                 sb.append(",");
             }
@@ -69,7 +69,7 @@ public class OracleStatementBuilder extends DefaultStatementBuilder {
 
         sb.append(") VALUES (");
         count = 0;
-        for (String columnName : metadata.getColumnNames()) {
+        for (String columnName : metadata.getValueColumnNames()) {
             if (count > 0) {
                 sb.append(",");
             }

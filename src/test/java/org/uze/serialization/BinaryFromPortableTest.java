@@ -9,6 +9,8 @@ import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 import com.tangosol.util.Binary;
 import com.tangosol.util.BinaryWriteBuffer;
+import com.tangosol.util.ExternalizableHelper;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,7 +27,7 @@ import java.util.Locale;
  * Created by Uze on 30.08.2014.
  */
 @RunWith(Parameterized.class)
-public class BinaryTest {
+public class BinaryFromPortableTest {
 
     private static PofContext pofContext;
 
@@ -36,11 +38,11 @@ public class BinaryTest {
         Locale.setDefault(Locale.ENGLISH);
 
         CacheFactory.getCacheFactoryBuilder()
-            .getConfigurableCacheFactory(BinaryTest.class.getClassLoader())
+            .getConfigurableCacheFactory(BinaryFromPortableTest.class.getClassLoader())
             .getResourceRegistry()
             .registerResource(BeanFactory.class, SpringContextHolder.getApplicationContext());
 
-        final NamedCache test1 = CacheFactory.getCache("Test1");
+        final NamedCache test1 = CacheFactory.getCache("Foos");
         final Serializer serializer = test1.getCacheService().getSerializer();
         pofContext = (PofContext) serializer;
     }
@@ -57,14 +59,21 @@ public class BinaryTest {
             .build();
     }
 
-    public BinaryTest(Foo foo) {
+    public BinaryFromPortableTest(Foo foo) {
         this.foo = foo;
     }
 
     @Test
     public void test() throws Exception {
+        final Binary a = ExternalizableHelper.toBinary(foo, pofContext);
+        final Binary b = toBinary(foo, pofContext);
 
+        Assert.assertEquals(a, b);
 
+        final Foo af = (Foo)ExternalizableHelper.fromBinary(a, pofContext);
+        final Foo bf = (Foo)ExternalizableHelper.fromBinary(b, pofContext);
+
+        Assert.assertEquals(af, bf);
     }
 
     private static Binary toBinary(Foo foo, PofContext pofContext) throws IOException {
@@ -75,9 +84,9 @@ public class BinaryTest {
         bo.writeByte(21);
 
         writer.writeObject(0, foo.getId());
-        writer.writeLong(1, foo.getId2());
+        writer.writeObject(1, foo.getId2());
         writer.writeObject(2, foo.getName());
-        writer.writeBoolean(3, foo.isFlag1());
+        writer.writeObject(3, foo.isFlag1());
         writer.writeObject(4, foo.getFlag2());
 
         writer.writeRemainder(null);

@@ -14,5 +14,9 @@
             <class-name>org.uze.serialization.UserPO2</class-name>
         </user-type>
 
+        <user-type>
+            <type-id>1003</type-id>
+            <class-name>org.uze.pof.Foo</class-name>
+        </user-type>
     </user-type-list>
 </pof-config>

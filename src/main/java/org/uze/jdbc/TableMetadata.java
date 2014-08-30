@@ -1,10 +1,13 @@
 package org.uze.jdbc;
 
 import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Predicate;
 import com.google.common.collect.*;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
@@ -13,9 +16,14 @@ import java.util.Objects;
  */
 public class TableMetadata {
 
+    public static final int MIN_USER_TYPE_ID = 1000;
+
     private final String tableName;
+    private final ImmutableList<String> valueColumnNames;
     private final ImmutableList<String> keyColumnNames;
     private final ImmutableMap<String, Column> columnMap;
+    private final int keyUserTypeId;
+    private final int valueUserTypeId;
 
     public String getTableName() {
         return tableName;
@@ -25,43 +33,66 @@ public class TableMetadata {
         return keyColumnNames;
     }
 
-    public ImmutableSet<String> getColumnNames() {
-        return columnMap.keySet();
+    public List<String> getValueColumnNames() {
+        return valueColumnNames;
     }
 
     public ImmutableCollection<Column> getColumns() {
         return columnMap.values();
     }
 
+    public ImmutableSet<String> getAllColumns() {
+        return columnMap.keySet();
+    }
+
     public Column getColumn(String name) {
         return columnMap.get(name);
     }
 
-    TableMetadata(String tableName, Iterable<TableMetadataBuilder.BuilderColumn> columns, Iterable<String> keyColumnNames) {
+    public int getKeyUserTypeId() {
+        return keyUserTypeId;
+    }
+
+    public int getValueUserTypeId() {
+        return valueUserTypeId;
+    }
+
+    public boolean isSimpleKey() {
+        return keyColumnNames.size() == 1;
+    }
+
+    public String getSimpleKeyColumnName() {
+        return isSimpleKey() ? keyColumnNames.get(0) : null;
+    }
+
+    public Column getSimpleKeyColumn(){
+        return isSimpleKey() ? columnMap.get(getSimpleKeyColumnName()) : null;
+    }
+
+    private TableMetadata(String tableName, Iterable<Builder.BuilderColumn> columns, Iterable<String> keyColumnNames, int valueUserTypeId, int keyUserTypeId) {
         Objects.requireNonNull(tableName);
         Objects.requireNonNull(columns);
         Objects.requireNonNull(keyColumnNames);
 
+        Preconditions.checkArgument(valueUserTypeId >= MIN_USER_TYPE_ID, "Illegal user type id: " + valueUserTypeId);
+
         final ImmutableList.Builder<String> listBuilder = ImmutableList.builder();
-        final ImmutableMap.Builder<String, Column> builder = ImmutableMap.builder();
-        for (TableMetadataBuilder.BuilderColumn c : columns) {
-            listBuilder.add(c.getName());
-            builder.put(c.getName(), new Column(c.getSqlType(), c.getClazz(), c.isKeyOnly()));
+        final ImmutableMap.Builder<String, Column> mapBuilder = ImmutableMap.builder();
+        for (Builder.BuilderColumn c : columns) {
+            if (!c.isKeyOnly()) {
+                listBuilder.add(c.getName());
+            }
+            mapBuilder.put(c.getName(), new Column(c.getSqlType(), c.getClazz(), c.isKeyOnly()));
         }
 
         this.tableName = tableName;
-        this.columnMap = builder.build();
-        //this.columnNames = listBuilder.build();
+        this.columnMap = mapBuilder.build();
+        this.valueColumnNames = listBuilder.build();
         this.keyColumnNames = ImmutableList.copyOf(keyColumnNames);
-//        this.keyColumns = Collections.unmodifiableList(Lists.transform(this.keyColumnNames, new Function<String, Column>() {
-//            @Override
-//            public Column apply(@Nullable String input) {
-//                if (input == null) {
-//                    return null;
-//                }
-//                return columnMap.get(input);
-//            }
-//        }));
+        this.valueUserTypeId = valueUserTypeId;
+        this.keyUserTypeId = keyUserTypeId;
+
+        Preconditions.checkArgument(getKeyColumnNames().size() == 1 || keyUserTypeId >= MIN_USER_TYPE_ID, "Illegal key user type id: " + keyUserTypeId);
     }
 
     public static class Column {
@@ -97,4 +128,170 @@ public class TableMetadata {
         }
     }
 
+    /**
+     *
+     */
+    public static class Builder {
+
+        static class BuilderColumn {
+
+            private final String name;
+            private final int sqlType;
+            private final Class clazz;
+            private int keyPosition = -1;
+            private boolean keyOnly;
+
+            public String getName() {
+                return name;
+            }
+
+            public int getSqlType() {
+                return sqlType;
+            }
+
+            public Class getClazz() {
+                return clazz;
+            }
+
+            public int getKeyPosition() {
+                return keyPosition;
+            }
+
+            public void setKeyPosition(int keyPosition) {
+                this.keyPosition = keyPosition;
+            }
+
+            public boolean isKeyOnly() {
+                return keyOnly;
+            }
+
+            public void setKeyOnly(boolean keyOnly) {
+                this.keyOnly = keyOnly;
+            }
+
+            public boolean isKey() {
+                return keyPosition >= 0;
+            }
+
+            BuilderColumn(String name, int sqlType, Class clazz) {
+                this.name = name;
+                this.sqlType = sqlType;
+                this.clazz = clazz;
+            }
+        }
+
+        private final String tableName;
+        private final List<BuilderColumn> columns = new ArrayList<>();
+        private BuilderColumn current;
+        private int keyUserTypeId = -1;
+        private int valueUserTypeId = -1;
+
+        public Builder(String tableName) {
+            this.tableName = tableName;
+        }
+
+        public Builder column(String name, int sqlType, Class clazz) {
+            Objects.requireNonNull(name);
+            Objects.requireNonNull(clazz);
+
+            Preconditions.checkArgument(indexOf(name) == -1, "Duplicated column name: " + name);
+
+            current = new BuilderColumn(name, sqlType, clazz);
+            columns.add(current);
+
+            return this;
+        }
+
+        public Builder key() {
+            return key(0);
+        }
+
+        private Builder setKey(int pos, boolean keyOnly) {
+            Objects.requireNonNull(current, "Add column first!");
+            if (pos < 0) {
+                throw new IllegalArgumentException("Position must be positive or zero: " + pos);
+            }
+
+            current.keyPosition = pos;
+            current.keyOnly = keyOnly;
+
+            return this;
+        }
+
+        public Builder key(int pos) {
+            return setKey(pos, false);
+        }
+
+        public Builder keyOnly() {
+            return keyOnly(0);
+        }
+
+        public Builder keyOnly(int pos) {
+            return setKey(pos, true);
+        }
+
+        public Builder withUserTypeId(int userTypeId) {
+            this.valueUserTypeId = userTypeId;
+            return this;
+        }
+
+        public Builder withKeyUserTypeId(int userTypeId) {
+            this.keyUserTypeId = userTypeId;
+            return this;
+        }
+
+        public TableMetadata build() {
+            final Iterable<String> key = Iterables.transform(Ordering.from(KeyColumnComparator.INSTANCE)
+                .sortedCopy(Iterables.filter(columns, new Predicate<BuilderColumn>() {
+                    @Override
+                    public boolean apply(@Nullable BuilderColumn input) {
+                        return input != null && input.isKey();
+                    }
+                })), new Function<BuilderColumn, String>() {
+                @Override
+                public String apply(@Nullable BuilderColumn input) {
+                    return input != null ? input.getName() : null;
+                }
+            });
+
+            int prevPosition = -1;
+            for (String keyColumn : key) {
+                final int pos = find(keyColumn).getKeyPosition();
+                Preconditions.checkArgument((prevPosition == -1 && pos == 0) || (pos == prevPosition + 1));
+                prevPosition = pos;
+            }
+
+            return new TableMetadata(tableName, columns, key, valueUserTypeId, keyUserTypeId);
+        }
+
+        private int indexOf(String name) {
+            for (int i = 0; i < columns.size(); i++) {
+                if (name.equals(columns.get(i).getName())) {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        private BuilderColumn find(String name) {
+            final int index = indexOf(name);
+
+            if (index >= 0) {
+                return columns.get(index);
+            }
+
+            throw new IllegalArgumentException("Column not found: " + name);
+        }
+
+        enum KeyColumnComparator implements Comparator<BuilderColumn> {
+
+            INSTANCE;
+
+            @Override
+            public int compare(BuilderColumn o1, BuilderColumn o2) {
+                return Integer.compare(o1.getKeyPosition(), o2.getKeyPosition());
+            }
+        }
+    }
 }

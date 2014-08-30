@@ -32,7 +32,7 @@ import static org.hamcrest.Matchers.*;
  */
 public class StatementBuilderTest {
 
-    public static final TableMetadata MULTI_COLUMN_KEY_TABLE_METADATA = new TableMetadataBuilder("TABLE1")
+    public static final TableMetadata MULTI_COLUMN_KEY_TABLE_METADATA = new TableMetadata.Builder("TABLE1")
         .column("COB", Types.VARCHAR, String.class)
         .keyOnly(1)
         .column("ID", Types.INTEGER, int.class)
@@ -42,8 +42,10 @@ public class StatementBuilderTest {
         .column("CREATED_DATE", Types.TIMESTAMP, Date.class)
         .column("UPDATED_DATE", Types.TIMESTAMP, Date.class)
         .column("GROUP_ID", Types.NUMERIC, Long.class)
+        .withUserTypeId(1005)
+        .withKeyUserTypeId(1006)
         .build();
-    public static final TableMetadata SINGLE_COLUMN_KEY_TABLE_METADATA = new TableMetadataBuilder("TABLE1")
+    public static final TableMetadata SINGLE_COLUMN_KEY_TABLE_METADATA = new TableMetadata.Builder("TABLE1")
         .column("ID", Types.INTEGER, int.class)
         .key(0)
         .column("NAME", Types.VARCHAR, String.class)
@@ -51,24 +53,27 @@ public class StatementBuilderTest {
         .column("CREATED_DATE", Types.TIMESTAMP, Date.class)
         .column("UPDATED_DATE", Types.TIMESTAMP, Date.class)
         .column("GROUP_ID", Types.NUMERIC, Long.class)
+        .withUserTypeId(1004)
         .build();
 
     private final StatementBuilder statementBuilder = new OracleStatementBuilder();
 
     @Test
     public void testKey() throws Exception {
-        final TableMetadata md = new TableMetadataBuilder("TABLE1")
+        final TableMetadata md = new TableMetadata.Builder("TABLE1")
             .column("COB", Types.VARCHAR, String.class)
             .keyOnly(1)
             .column("ID", Types.INTEGER, int.class)
             .keyOnly(0)
+            .withUserTypeId(1001)
+            .withKeyUserTypeId(1002)
             .build();
 
         Assert.assertNotNull(md);
         Assert.assertThat(md.getKeyColumnNames(), hasSize(2));
         Assert.assertThat(md.getKeyColumnNames(), hasItems("ID", "COB"));
-//        Assert.assertThat(md.getColumnNames(), hasEntry(is("ID"), equalTo(new TableMetadata.Column(Types.INTEGER, int.class))));
-//        Assert.assertThat(md.getColumnNames(), Matchers.<String, TableMetadata.Column>hasEntry(is("ID"), allOf(
+//        Assert.assertThat(md.getValueColumnNames(), hasEntry(is("ID"), equalTo(new TableMetadata.Column(Types.INTEGER, int.class))));
+//        Assert.assertThat(md.getValueColumnNames(), Matchers.<String, TableMetadata.Column>hasEntry(is("ID"), allOf(
 //                hasProperty("sqlType", is(Types.INTEGER)),
 //                hasProperty("clazz", isA(int.class))
 //        )));

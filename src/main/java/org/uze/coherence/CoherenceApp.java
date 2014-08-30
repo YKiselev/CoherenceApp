@@ -4,7 +4,6 @@ import com.tangosol.io.Serializer;
 import com.tangosol.io.WriteBuffer;
 import com.tangosol.io.pof.PofBufferWriter;
 import com.tangosol.io.pof.PofContext;
-import com.tangosol.io.pof.PofWriter;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 import com.tangosol.util.Binary;
@@ -15,7 +14,6 @@ import org.uze.caches.CacheAccess;
 import org.uze.client.Counterpart;
 import org.uze.client.Trade;
 import org.uze.pof.CounterpartPO;
-import org.uze.pof.MyPofContext;
 import org.uze.spring.SpringContextHolder;
 
 import java.io.IOException;
@@ -50,48 +48,6 @@ public class CoherenceApp {
             .registerResource(BeanFactory.class, SpringContextHolder.getApplicationContext());
 
         final NamedCache test1 = CacheFactory.getCache("Test1");
-        final Serializer serializer = test1.getCacheService().getSerializer();
-        CounterpartPO c1 = new CounterpartPO();
-        c1.setId(123L);
-        c1.setName("John Doe");
-
-        final PofContext pofContext = new MyPofContext((PofContext) serializer);
-
-        final Binary b1 = ExternalizableHelper.toBinary(c1, pofContext);
-        final Binary b12 = toBinary(c1, pofContext);
-
-        c1.setName(null);
-        final Binary b2 = ExternalizableHelper.toBinary(c1, pofContext);
-        final Binary b22 = toBinary(c1, pofContext);
-
-        c1.setId(null);
-        c1.setName("John Doe");
-        final Binary b3 = ExternalizableHelper.toBinary(c1, pofContext);
-        final Binary b32 = toBinary(c1, pofContext);
-
-        c1.setId(null);
-        c1.setName(null);
-        final Binary b4 = ExternalizableHelper.toBinary(c1, pofContext);
-        final Binary b42 = toBinary(c1, pofContext);
-
-        System.out.println(b1 + " == " + b12 + " ? " + b1.equals(b12));
-        System.out.println(b2 + " == " + b22 + " ? " + b2.equals(b22));
-        System.out.println(b3 + " == " + b32 + " ? " + b3.equals(b32));
-        System.out.println(b4 + " == " + b42 + " ? " + b4.equals(b42));
-
-        CounterpartPO p1 = (CounterpartPO)ExternalizableHelper.fromBinary(b1, pofContext);
-        CounterpartPO p12 = (CounterpartPO)ExternalizableHelper.fromBinary(b12, pofContext);
-
-        CounterpartPO p2 = (CounterpartPO)ExternalizableHelper.fromBinary(b2, pofContext);
-        CounterpartPO p22 = (CounterpartPO)ExternalizableHelper.fromBinary(b22, pofContext);
-
-        CounterpartPO p3 = (CounterpartPO)ExternalizableHelper.fromBinary(b3, pofContext);
-        CounterpartPO p32 = (CounterpartPO)ExternalizableHelper.fromBinary(b32, pofContext);
-
-        CounterpartPO p4 = (CounterpartPO)ExternalizableHelper.fromBinary(b4, pofContext);
-        CounterpartPO p42 = (CounterpartPO)ExternalizableHelper.fromBinary(b42, pofContext);
-
-        System.exit(0);
 
         final Map m1 = test1.getAll(Arrays.asList(1L, 2L, 3L, 4L, 5L, 6L));
         System.out.println("Result map: " + m1);

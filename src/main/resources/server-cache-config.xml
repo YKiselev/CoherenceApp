@@ -20,9 +20,28 @@
             <scheme-name>near1</scheme-name>
         </cache-mapping>
 
+        <cache-mapping>
+            <cache-name>Foos</cache-name>
+            <scheme-name>near-foo</scheme-name>
+        </cache-mapping>
+
     </caching-scheme-mapping>
 
     <caching-schemes>
+        <near-scheme>
+            <scheme-name>near-foo</scheme-name>
+            <front-scheme>
+                <local-scheme>
+                    <scheme-name>LocalMemoryScheme</scheme-name>
+                </local-scheme>
+            </front-scheme>
+            <back-scheme>
+                <distributed-scheme>
+                    <scheme-ref>test-scheme1</scheme-ref>
+                </distributed-scheme>
+            </back-scheme>
+        </near-scheme>
+
         <near-scheme>
             <scheme-name>near1</scheme-name>
             <front-scheme>
