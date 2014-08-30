@@ -1,8 +1,5 @@
 package org.uze.serialization;
 
-import com.tangosol.io.pof.annotation.Portable;
-import com.tangosol.io.pof.annotation.PortableProperty;
-
 import java.io.Serializable;
 import java.util.Date;
 
