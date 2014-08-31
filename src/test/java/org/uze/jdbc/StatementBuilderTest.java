@@ -70,17 +70,12 @@ public class StatementBuilderTest {
             .build();
 
         Assert.assertNotNull(md);
-        Assert.assertThat(md.getKeyColumnNames(), hasSize(2));
-        Assert.assertThat(md.getKeyColumnNames(), hasItems("ID", "COB"));
-//        Assert.assertThat(md.getValueColumnNames(), hasEntry(is("ID"), equalTo(new TableMetadata.Column(Types.INTEGER, int.class))));
-//        Assert.assertThat(md.getValueColumnNames(), Matchers.<String, TableMetadata.Column>hasEntry(is("ID"), allOf(
-//                hasProperty("sqlType", is(Types.INTEGER)),
-//                hasProperty("clazz", isA(int.class))
-//        )));
+        Assert.assertThat(md.getKey().getSize(), is(2));
+        Assert.assertThat(md.getKey().getNames(), hasItems("ID", "COB"));
     }
 
     @Test
-    public void testMultyKeySelectStatement() throws Exception {
+    public void testMultiKeySelectStatement() throws Exception {
         final String sql = statementBuilder.buildSelectStatement(MULTI_COLUMN_KEY_TABLE_METADATA, 20);
         Assert.assertNotNull(sql);
 

@@ -15,12 +15,14 @@ public class OracleStatementBuilder extends DefaultStatementBuilder {
     public String buildMergeStatement(TableMetadata metadata) {
         Objects.requireNonNull(metadata);
 
+        final UserTypeColumns key = metadata.getKey();
+        final UserTypeColumns value = metadata.getValue();
         final StringBuilder sb = new StringBuilder();
 
         sb.append("MERGE INTO ").append(metadata.getTableName()).append(" T USING (SELECT ");
 
         int count = 0;
-        for (String columnName : metadata.getValueColumnNames()) {
+        for (String columnName : value.getNames()) {
             if (count > 0) {
                 sb.append(",");
             }
@@ -31,7 +33,7 @@ public class OracleStatementBuilder extends DefaultStatementBuilder {
         sb.append(" FROM DUAL) S ON (");
 
         count = 0;
-        for (String columnName : metadata.getKeyColumnNames()) {
+        for (String columnName : key.getNames()) {
             if (count > 0) {
                 sb.append(" AND ");
             }
@@ -42,8 +44,8 @@ public class OracleStatementBuilder extends DefaultStatementBuilder {
         sb.append(")\n")
             .append("WHEN MATCHED THEN UPDATE SET ");
 
-        final List<String> nonKeyColumns = Lists.newArrayList(metadata.getValueColumnNames());
-        nonKeyColumns.removeAll(metadata.getKeyColumnNames());
+        final List<String> nonKeyColumns = Lists.newArrayList(value.getNames());
+        nonKeyColumns.removeAll(key.getNames());
         Preconditions.checkArgument(!nonKeyColumns.isEmpty(), "Table has only key columns!");
 
         count = 0;
@@ -59,7 +61,7 @@ public class OracleStatementBuilder extends DefaultStatementBuilder {
             .append("WHEN NOT MATCHED THEN INSERT (");
 
         count = 0;
-        for (String columnName : metadata.getValueColumnNames()) {
+        for (String columnName : value.getNames()) {
             if (count > 0) {
                 sb.append(",");
             }
@@ -69,7 +71,7 @@ public class OracleStatementBuilder extends DefaultStatementBuilder {
 
         sb.append(") VALUES (");
         count = 0;
-        for (String columnName : metadata.getValueColumnNames()) {
+        for (String columnName : value.getNames()) {
             if (count > 0) {
                 sb.append(",");
             }

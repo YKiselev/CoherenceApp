@@ -8,6 +8,7 @@ import com.tangosol.io.pof.reflect.PofValueParser;
 import com.tangosol.io.pof.reflect.SimplePofValue;
 import com.tangosol.util.Binary;
 import com.tangosol.util.BinaryEntry;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.jdbc.core.RowCallbackHandler;
@@ -115,6 +116,17 @@ public class BaseJdbcBinaryEntryStore extends AbstractBinaryEntryStore {
         Binary key = entry.getBinaryKey();
         Binary value = entry.getBinaryValue();
 
+        jdbcTemplate.batchUpdate("", new BatchPreparedStatementSetter() {
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+
+            }
+
+            @Override
+            public int getBatchSize() {
+                return 0;
+            }
+        });
     }
 
     private void eraseBatch(List<BinaryEntry> entries) {
@@ -158,7 +170,7 @@ public class BaseJdbcBinaryEntryStore extends AbstractBinaryEntryStore {
                     throw new RuntimeException(e);
                 }
 
-                final PofValue pofValue = PofValueParser.parse(key, (PofContext) entry.getSerializer());
+                final PofValue pofValue = PofValueParser.parse(key, pofContext);
                 final List<String> keyColumns = metadata.getKey().getNames();
                 final int keySize = keyColumns.size();
                 if (keySize == 1) {
@@ -216,6 +228,43 @@ public class BaseJdbcBinaryEntryStore extends AbstractBinaryEntryStore {
             }
 
             return BinaryHelper.toBinary(new UserTypeValueExtractor(metadata.getKey(), pofValue), pofContext);
+        }
+    }
+
+    static class UpdateChunk implements BatchPreparedStatementSetter {
+
+        private final TableMetadata metadata;
+        private final int batchSize;
+        private final List<BinaryEntry> entries;
+
+        UpdateChunk(TableMetadata metadata, int batchSize, List<BinaryEntry> entries) {
+            this.metadata = metadata;
+            this.batchSize = batchSize;
+            this.entries = entries;
+        }
+
+        @Override
+        public void setValues(PreparedStatement ps, int i) throws SQLException {
+            final BinaryEntry entry = entries.get(i);
+            final PofValue pofValue = PofValueParser.parse(entry.getBinaryKey(), (PofContext) entry.getSerializer());
+            final List<String> keyColumns = metadata.getKey().getNames();
+            final int keySize = keyColumns.size();
+            if (keySize == 1) {
+                final Column column = metadata.getColumn(keyColumns.get(0));
+                ps.setObject(i + 1, pofValue.getValue(column.getClazz()), column.getSqlType());
+            } else {
+                for (int k = 0; k < keySize; k++) {
+                    final Column column = metadata.getColumn(keyColumns.get(k));
+                    final PofValue value = pofValue.getChild(k);
+
+                    ps.setObject(i + k + 1, value.getValue(column.getClazz()), column.getSqlType());
+                }
+            }
+        }
+
+        @Override
+        public int getBatchSize() {
+            return batchSize;
         }
     }
 }

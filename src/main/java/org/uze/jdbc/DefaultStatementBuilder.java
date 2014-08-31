@@ -26,7 +26,7 @@ public class DefaultStatementBuilder implements StatementBuilder {
         sb.append("SELECT\n");
 
         int count = 0;
-        for (String columnName : metadata.getValueColumnNames()) {
+        for (String columnName : metadata.getValue().getNames()) {
             if (count > 0) {
                 sb.append(",");
             }
@@ -50,7 +50,7 @@ public class DefaultStatementBuilder implements StatementBuilder {
         sb.append("INSERT INTO ").append(metadata.getTableName()).append('(');
 
         int count = 0;
-        for (String columnName : metadata.getValueColumnNames()) {
+        for (String columnName : metadata.getValue().getNames()) {
             if (count > 0) {
                 sb.append(",");
             }
@@ -77,7 +77,7 @@ public class DefaultStatementBuilder implements StatementBuilder {
         sb.append("UPDATE ").append(metadata.getTableName()).append(" SET ");
 
         int count = 0;
-        for (String columnName : metadata.getValueColumnNames()) {
+        for (String columnName : metadata.getValue().getNames()) {
             if (count > 0) {
                 sb.append(",");
             }
@@ -85,7 +85,7 @@ public class DefaultStatementBuilder implements StatementBuilder {
             count++;
         }
 
-        final List<String> keyColumns = metadata.getKeyColumnNames();
+        final List<String> keyColumns = metadata.getKey().getNames();
 
         sb.append("\nWHERE ");
 
@@ -105,12 +105,14 @@ public class DefaultStatementBuilder implements StatementBuilder {
     public String buildMergeStatement(TableMetadata metadata) {
         Objects.requireNonNull(metadata);
 
+        final UserTypeColumns key = metadata.getKey();
+        final UserTypeColumns value = metadata.getValue();
         final StringBuilder sb = new StringBuilder();
 
         sb.append("MERGE INTO ").append(metadata.getTableName()).append(" T USING (SELECT ");
 
         int count = 0;
-        for (String columnName : metadata.getValueColumnNames()) {
+        for (String columnName : value.getNames()) {
             if (count > 0) {
                 sb.append(",");
             }
@@ -121,7 +123,7 @@ public class DefaultStatementBuilder implements StatementBuilder {
         sb.append(") S ON (");
 
         count = 0;
-        for (String columnName : metadata.getKeyColumnNames()) {
+        for (String columnName : key.getNames()) {
             if (count > 0) {
                 sb.append(" AND ");
             }
@@ -132,8 +134,8 @@ public class DefaultStatementBuilder implements StatementBuilder {
         sb.append(")\n")
             .append("WHEN MATCHED THEN UPDATE SET ");
 
-        final List<String> nonKeyColumns = Lists.newArrayList(metadata.getValueColumnNames());
-        nonKeyColumns.removeAll(metadata.getKeyColumnNames());
+        final List<String> nonKeyColumns = Lists.newArrayList(value.getNames());
+        nonKeyColumns.removeAll(key.getNames());
         Preconditions.checkArgument(!nonKeyColumns.isEmpty(), "Table has only key columns!");
 
         count = 0;
@@ -149,7 +151,7 @@ public class DefaultStatementBuilder implements StatementBuilder {
             .append("WHEN NOT MATCHED THEN INSERT (");
 
         count = 0;
-        for (String columnName : metadata.getValueColumnNames()) {
+        for (String columnName : value.getNames()) {
             if (count > 0) {
                 sb.append(",");
             }
@@ -159,7 +161,7 @@ public class DefaultStatementBuilder implements StatementBuilder {
 
         sb.append(") VALUES (");
         count = 0;
-        for (String columnName : metadata.getValueColumnNames()) {
+        for (String columnName : value.getNames()) {
             if (count > 0) {
                 sb.append(",");
             }
@@ -199,7 +201,7 @@ public class DefaultStatementBuilder implements StatementBuilder {
         Objects.requireNonNull(metadata);
         Preconditions.checkArgument(keyCount > 0);
 
-        final List<String> keyColumns = metadata.getKeyColumnNames();
+        final List<String> keyColumns = metadata.getKey().getNames();
         final boolean complexFlag = keyColumns.size() > 1;
 
         sb.append("\nWHERE ");

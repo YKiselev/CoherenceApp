@@ -1,22 +1,13 @@
 package org.uze.coherence;
 
-import com.tangosol.io.Serializer;
-import com.tangosol.io.WriteBuffer;
-import com.tangosol.io.pof.PofBufferWriter;
-import com.tangosol.io.pof.PofContext;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
-import com.tangosol.util.Binary;
-import com.tangosol.util.BinaryWriteBuffer;
-import com.tangosol.util.ExternalizableHelper;
 import org.springframework.beans.factory.BeanFactory;
 import org.uze.caches.CacheAccess;
 import org.uze.client.Counterpart;
 import org.uze.client.Trade;
-import org.uze.pof.CounterpartPO;
 import org.uze.spring.SpringContextHolder;
 
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StreamTokenizer;
 import java.util.*;
@@ -51,23 +42,6 @@ public class CoherenceApp {
 
         final Map m1 = test1.getAll(Arrays.asList(1L, 2L, 3L, 4L, 5L, 6L));
         System.out.println("Result map: " + m1);
-
-        System.exit(0);
-
-//        CounterpartPO c = new CounterpartPO();
-//        c.setId(1L);
-//        c.setName("New counterpart #1");
-//        test1.put(123L, c);
-
-        /////////////////
-//        final Counterpart cp2 = new Counterpart();
-//
-//        cp2.setId(1L);
-//        cp2.setName("New user #2");
-//
-//        final Counterpart oldcp = CacheAccess.COUNTERPARTS.put(cp2.getId(), cp2);
-//        System.out.println("Old cp: " + oldcp);
-        ///////////////
 
         // check raw cache items
         final NamedCache tmp = CacheFactory.getCache("Counterparts");
@@ -113,41 +87,6 @@ public class CoherenceApp {
                     System.out.print("Unknown token: " + i);
             }
         }
-    }
-
-    private static Binary toBinary(CounterpartPO cp, PofContext pofContext) throws IOException {
-        final BinaryWriteBuffer b = new BinaryWriteBuffer(1);
-        final WriteBuffer.BufferOutput bo = b.getBufferOutput();
-
-        //bo.writeByte(21);
-        //pofContext.serialize(bo, cp);
-
-        //final PofWriter writer = new PofBufferWriter(bo, pofContext);//, 1002, -1);
-
-        //bo.writeByte(21);
-        //writer.writeObject(-1, cp);
-
-        final PofBufferWriter.UserTypeWriter writer = new PofBufferWriter.UserTypeWriter(bo, pofContext, 1002, -1);
-
-        bo.writeByte(21);
-        //writer.writeObject(0, cp.getId());
-        //writer.writeString(1, cp.getName());
-
-        writer.writeObject(0, cp.getId() != null ? cp.getId() : 0L);
-        if (cp.getName() != null) {
-            writer.writeObject(1, cp.getName());
-        }
-
-//        if (cp.getId() == null) {
-//            writer.writeObject(0, cp.getId());
-//        } else {
-//            writer.writeLong(0, cp.getId());
-//        }
-//        writer.writeString(1, cp.getName());
-
-        writer.writeRemainder(null);
-
-        return b.toBinary();
     }
 
     private static void fillDatabase() {
