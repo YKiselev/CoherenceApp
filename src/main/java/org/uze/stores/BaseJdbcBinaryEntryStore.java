@@ -116,6 +116,13 @@ public class BaseJdbcBinaryEntryStore extends AbstractBinaryEntryStore {
         Binary key = entry.getBinaryKey();
         Binary value = entry.getBinaryValue();
 
+        jdbcTemplate.update("", new PreparedStatementSetter() {
+            @Override
+            public void setValues(PreparedStatement ps) throws SQLException {
+
+            }
+        });
+
         jdbcTemplate.batchUpdate("", new BatchPreparedStatementSetter() {
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
@@ -160,6 +167,9 @@ public class BaseJdbcBinaryEntryStore extends AbstractBinaryEntryStore {
 
         @Override
         public void setValues(PreparedStatement ps) throws SQLException {
+            final List<String> keyColumns = metadata.getKey().getNames();
+            final int keySize = keyColumns.size();
+
             for (int i = 0; i < entries.size(); i++) {
                 final BinaryEntry entry = entries.get(i);
                 final Binary key = entry.getBinaryKey();
@@ -171,8 +181,6 @@ public class BaseJdbcBinaryEntryStore extends AbstractBinaryEntryStore {
                 }
 
                 final PofValue pofValue = PofValueParser.parse(key, pofContext);
-                final List<String> keyColumns = metadata.getKey().getNames();
-                final int keySize = keyColumns.size();
                 if (keySize == 1) {
                     final Column column = metadata.getColumn(keyColumns.get(0));
                     ps.setObject(i + 1, pofValue.getValue(column.getClazz()), column.getSqlType());
@@ -231,40 +239,33 @@ public class BaseJdbcBinaryEntryStore extends AbstractBinaryEntryStore {
         }
     }
 
-    static class UpdateChunk implements BatchPreparedStatementSetter {
+    static class UpdateChunk implements PreparedStatementSetter {
 
         private final TableMetadata metadata;
-        private final int batchSize;
         private final List<BinaryEntry> entries;
 
-        UpdateChunk(TableMetadata metadata, int batchSize, List<BinaryEntry> entries) {
+        UpdateChunk(TableMetadata metadata, List<BinaryEntry> entries) {
             this.metadata = metadata;
-            this.batchSize = batchSize;
             this.entries = entries;
         }
 
         @Override
-        public void setValues(PreparedStatement ps, int i) throws SQLException {
-            final BinaryEntry entry = entries.get(i);
-            final PofValue pofValue = PofValueParser.parse(entry.getBinaryKey(), (PofContext) entry.getSerializer());
-            final List<String> keyColumns = metadata.getKey().getNames();
-            final int keySize = keyColumns.size();
-            if (keySize == 1) {
-                final Column column = metadata.getColumn(keyColumns.get(0));
-                ps.setObject(i + 1, pofValue.getValue(column.getClazz()), column.getSqlType());
-            } else {
-                for (int k = 0; k < keySize; k++) {
-                    final Column column = metadata.getColumn(keyColumns.get(k));
-                    final PofValue value = pofValue.getChild(k);
-
-                    ps.setObject(i + k + 1, value.getValue(column.getClazz()), column.getSqlType());
-                }
-            }
-        }
-
-        @Override
-        public int getBatchSize() {
-            return batchSize;
+        public void setValues(PreparedStatement ps) throws SQLException {
+//            final BinaryEntry entry = entries.get(i);
+//            final PofValue pofValue = PofValueParser.parse(entry.getBinaryKey(), (PofContext) entry.getSerializer());
+//            final List<String> keyColumns = metadata.getKey().getNames();
+//            final int keySize = keyColumns.size();
+//            if (keySize == 1) {
+//                final Column column = metadata.getColumn(keyColumns.get(0));
+//                ps.setObject(i + 1, pofValue.getValue(column.getClazz()), column.getSqlType());
+//            } else {
+//                for (int k = 0; k < keySize; k++) {
+//                    final Column column = metadata.getColumn(keyColumns.get(k));
+//                    final PofValue value = pofValue.getChild(k);
+//
+//                    ps.setObject(i + k + 1, value.getValue(column.getClazz()), column.getSqlType());
+//                }
+//            }
         }
     }
 }

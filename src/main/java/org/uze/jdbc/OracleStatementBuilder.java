@@ -22,7 +22,7 @@ public class OracleStatementBuilder extends DefaultStatementBuilder {
         sb.append("MERGE INTO ").append(metadata.getTableName()).append(" T USING (SELECT ");
 
         int count = 0;
-        for (String columnName : value.getNames()) {
+        for (String columnName : metadata.getAllColumns()) {
             if (count > 0) {
                 sb.append(",");
             }
@@ -61,7 +61,7 @@ public class OracleStatementBuilder extends DefaultStatementBuilder {
             .append("WHEN NOT MATCHED THEN INSERT (");
 
         count = 0;
-        for (String columnName : value.getNames()) {
+        for (String columnName : metadata.getAllColumns()) {
             if (count > 0) {
                 sb.append(",");
             }
@@ -71,7 +71,7 @@ public class OracleStatementBuilder extends DefaultStatementBuilder {
 
         sb.append(") VALUES (");
         count = 0;
-        for (String columnName : value.getNames()) {
+        for (String columnName : metadata.getAllColumns()) {
             if (count > 0) {
                 sb.append(",");
             }

@@ -11,24 +11,7 @@ import java.util.regex.Pattern;
 import static org.hamcrest.Matchers.*;
 
 /**
- * C - without key columns
- * select C
- * from t
- * where (K) in ((?),(?),(?))
- * <p/>
- * batch
- * C - with key columns
- * insert into t (C)
- * select Cv from dual
- * where not exists (select null from t where K1 = ?, K2 = ?)
- * <p/>
- * batch
- * C - without key columns
- * update t
- * set C = Cv,...
- * where K = ?
- * <p/>
- * * Created by Uze on 18.08.2014.
+ * Created by Uze on 18.08.2014.
  */
 public class StatementBuilderTest {
 
@@ -86,13 +69,13 @@ public class StatementBuilderTest {
         Assert.assertTrue(m.matches());
 
         final String[] columns = m.group(1).split(",");
-        Assert.assertThat(columns, arrayWithSize(7));
+        Assert.assertThat(columns, arrayWithSize(MULTI_COLUMN_KEY_TABLE_METADATA.getValue().getSize()));
 
         final String[] tables = m.group(2).split(",");
         Assert.assertThat(tables, arrayWithSize(1));
 
         final String[] keys = m.group(3).split(",");
-        Assert.assertThat(keys, arrayWithSize(2));
+        Assert.assertThat(keys, arrayWithSize(MULTI_COLUMN_KEY_TABLE_METADATA.getKey().getSize()));
 
         final String[] values = m.group(4).split("(?<=\\))\\s*,\\s*(?=\\()");
         Assert.assertThat(values, arrayWithSize(20));
@@ -110,13 +93,13 @@ public class StatementBuilderTest {
         Assert.assertTrue(m.matches());
 
         final String[] columns = m.group(1).split(",");
-        Assert.assertThat(columns, arrayWithSize(6));
+        Assert.assertThat(columns, arrayWithSize(SINGLE_COLUMN_KEY_TABLE_METADATA.getValue().getSize()));
 
         final String[] tables = m.group(2).split(",");
         Assert.assertThat(tables, arrayWithSize(1));
 
         final String[] keys = m.group(3).split(",");
-        Assert.assertThat(keys, arrayWithSize(1));
+        Assert.assertThat(keys, arrayWithSize(SINGLE_COLUMN_KEY_TABLE_METADATA.getKey().getSize()));
 
         final String[] values = m.group(4).split("\\s*,\\s*");
         Assert.assertThat(values, arrayWithSize(7));
@@ -137,10 +120,10 @@ public class StatementBuilderTest {
         Assert.assertThat(tables, arrayWithSize(1));
 
         final String[] columns = m.group(2).split(",");
-        Assert.assertThat(columns, arrayWithSize(7));
+        Assert.assertThat(columns, arrayWithSize(MULTI_COLUMN_KEY_TABLE_METADATA.getAllColumns().size()));
 
         final String[] values = m.group(3).split(",");
-        Assert.assertThat(values, arrayWithSize(7));
+        Assert.assertThat(values, arrayWithSize(MULTI_COLUMN_KEY_TABLE_METADATA.getAllColumns().size()));
     }
 
     @Test
@@ -158,10 +141,10 @@ public class StatementBuilderTest {
         Assert.assertThat(tables, arrayWithSize(1));
 
         final String[] columns = m.group(2).split(",");
-        Assert.assertThat(columns, arrayWithSize(7));
+        Assert.assertThat(columns, arrayWithSize(MULTI_COLUMN_KEY_TABLE_METADATA.getValue().getSize()));
 
         final String[] keys = m.group(3).split("\\s+AND\\s+");
-        Assert.assertThat(keys, arrayWithSize(2));
+        Assert.assertThat(keys, arrayWithSize(MULTI_COLUMN_KEY_TABLE_METADATA.getKey().getSize()));
     }
 
     @Test
@@ -181,22 +164,22 @@ public class StatementBuilderTest {
         Assert.assertThat(tables, arrayWithSize(1));
 
         final String[] using = m.group(2).split(",");
-        Assert.assertThat(using, arrayWithSize(7));
+        Assert.assertThat(using, arrayWithSize(MULTI_COLUMN_KEY_TABLE_METADATA.getAllColumns().size()));
 
         final String alias = m.group(3);
         Assert.assertEquals("S", alias);
 
         final String[] on = m.group(4).split("\\s+AND\\s+");
-        Assert.assertThat(on, arrayWithSize(2));
+        Assert.assertThat(on, arrayWithSize(MULTI_COLUMN_KEY_TABLE_METADATA.getKey().getSize()));
 
         final String[] update = m.group(5).split(",");
-        Assert.assertThat(update, arrayWithSize(5));
+        Assert.assertThat(update, arrayWithSize(MULTI_COLUMN_KEY_TABLE_METADATA.getValue().getSize()));
 
         final String[] columns = m.group(6).split(",");
-        Assert.assertThat(columns, arrayWithSize(7));
+        Assert.assertThat(columns, arrayWithSize(MULTI_COLUMN_KEY_TABLE_METADATA.getAllColumns().size()));
 
         final String[] values = m.group(7).split(",");
-        Assert.assertThat(values, arrayWithSize(7));
+        Assert.assertThat(values, arrayWithSize(MULTI_COLUMN_KEY_TABLE_METADATA.getAllColumns().size()));
     }
 
     @Test
@@ -214,7 +197,7 @@ public class StatementBuilderTest {
         Assert.assertThat(tables, arrayWithSize(1));
 
         final String[] keys = m.group(2).split(",");
-        Assert.assertThat(keys, arrayWithSize(2));
+        Assert.assertThat(keys, arrayWithSize(MULTI_COLUMN_KEY_TABLE_METADATA.getKey().getSize()));
 
         final String[] values = m.group(3).split("(?<=\\))\\s*,\\s*(?=\\()");
         Assert.assertThat(values, arrayWithSize(15));
