@@ -1,10 +1,9 @@
 package org.uze.jdbc;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import com.tangosol.io.pof.reflect.PofValue;
+import com.tangosol.util.BinaryEntry;
+import org.uze.stores.SelectStatementContext;
 
-import java.sql.PreparedStatement;
 import java.util.List;
 import java.util.Objects;
 
@@ -41,6 +40,11 @@ public class DefaultStatementBuilder implements StatementBuilder {
         addWhereInClause(metadata, keyCount, sb);
 
         return sb.toString();
+    }
+
+    @Override
+    public SelectStatementContext newSelectStatementContext(TableMetadata metadata, List<BinaryEntry> entries) {
+        return new SelectStatementContext(metadata, entries);
     }
 
     @Override

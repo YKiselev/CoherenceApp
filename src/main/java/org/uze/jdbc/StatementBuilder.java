@@ -1,11 +1,18 @@
 package org.uze.jdbc;
 
+import com.tangosol.util.BinaryEntry;
+import org.uze.stores.SelectStatementContext;
+
+import java.util.List;
+
 /**
  * Created by Uze on 24.08.2014.
  */
 public interface StatementBuilder {
 
     String buildSelectStatement(TableMetadata metadata, int keyCount);
+
+    SelectStatementContext newSelectStatementContext(TableMetadata metadata, List<BinaryEntry> entries);
 
     String buildInsertStatement(TableMetadata metadata);
 
