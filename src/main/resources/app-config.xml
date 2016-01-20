@@ -10,11 +10,11 @@
 
     <stores>
         <Counterparts>
-            <class>org.uze.stores.CounterpartCacheStore</class>
+            <class>org.uze.coherence.stores.CounterpartCacheStore</class>
         </Counterparts>
 
         <Trades>
-            <class>org.uze.stores.TradeCacheStore</class>
+            <class>org.uze.coherence.stores.TradeCacheStore</class>
         </Trades>
     </stores>
 </configuration>

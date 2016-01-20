@@ -1,7 +1,7 @@
 package org.uze.mappers;
 
 import org.springframework.jdbc.core.RowMapper;
-import org.uze.pof.CounterpartPO;
+import org.uze.coherence.pof.CounterpartPO;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

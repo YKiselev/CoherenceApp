@@ -1,7 +1,7 @@
 package org.uze.caches;
 
 import org.uze.client.Trade;
-import org.uze.pof.TradePO;
+import org.uze.coherence.pof.TradePO;
 
 /**
  * Created by Uze on 11.12.13.

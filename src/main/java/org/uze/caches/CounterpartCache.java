@@ -1,7 +1,7 @@
 package org.uze.caches;
 
 import org.uze.client.Counterpart;
-import org.uze.pof.CounterpartPO;
+import org.uze.coherence.pof.CounterpartPO;
 
 /**
  * Created by Uze on 11.12.13.

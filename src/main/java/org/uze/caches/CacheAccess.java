@@ -4,8 +4,8 @@ import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 import org.uze.client.Counterpart;
 import org.uze.client.Trade;
-import org.uze.pof.CounterpartPO;
-import org.uze.pof.TradePO;
+import org.uze.coherence.pof.CounterpartPO;
+import org.uze.coherence.pof.TradePO;
 
 import java.util.Set;
 

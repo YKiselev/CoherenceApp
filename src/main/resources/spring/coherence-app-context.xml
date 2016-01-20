@@ -29,19 +29,19 @@
         <property name="dataSource" ref="ch-app.dataSource"/>
     </bean>
 
-    <bean id="ch-app.statementBuilder" class="org.uze.jdbc.OracleStatementBuilder"/>
+    <bean id="ch-app.statementBuilder" class="org.uze.coherence.jdbc.OracleStatementBuilder"/>
 
     <bean id="ch-app.jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
         <constructor-arg ref="ch-app.dataSource"/>
         <!--<property name="maxRows" value="1000000"/>-->
     </bean>
 
-    <bean id="ch-app.parentStore" class="org.uze.stores.BaseJdbcBinaryEntryStore" abstract="true">
+    <bean id="ch-app.parentStore" class="org.uze.coherence.stores.BaseJdbcBinaryEntryStore" abstract="true">
         <property name="jdbcTemplate" ref="ch-app.jdbcTemplate"/>
         <property name="statementBuilder" ref="ch-app.statementBuilder"/>
         <property name="batchSize" value="1000"/>
     </bean>
 
-    <bean id="ch-app.test1Store" class="org.uze.stores.Test1Store" parent="ch-app.parentStore">
+    <bean id="ch-app.test1Store" class="org.uze.coherence.stores.Test1Store" parent="ch-app.parentStore">
     </bean>
 </beans>

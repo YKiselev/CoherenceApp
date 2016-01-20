@@ -1,7 +1,7 @@
 package org.uze.mappers;
 
 import org.springframework.jdbc.core.RowMapper;
-import org.uze.pof.TradePO;
+import org.uze.coherence.pof.TradePO;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

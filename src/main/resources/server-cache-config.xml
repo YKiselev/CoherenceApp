@@ -78,7 +78,7 @@
             <service-name>LocalCache</service-name>
             <cachestore-scheme>
                 <class-scheme>
-                    <class-name>org.uze.stores.MyStore</class-name>
+                    <class-name>org.uze.coherence.stores.MyStore</class-name>
                     <init-params>
                         <init-param>
                             <param-type>java.lang.String</param-type>
@@ -119,7 +119,7 @@
                     </internal-cache-scheme>
                     <cachestore-scheme>
                         <class-scheme>
-                            <class-name>org.uze.stores.MyStore</class-name>
+                            <class-name>org.uze.coherence.stores.MyStore</class-name>
                             <init-params>
                                 <init-param>
                                     <param-type>java.lang.String</param-type>
