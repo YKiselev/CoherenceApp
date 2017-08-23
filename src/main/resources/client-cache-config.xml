@@ -13,6 +13,12 @@
             <scheme-name>near</scheme-name>
         </cache-mapping>
 
+        <!-- Node's cache -->
+        <cache-mapping>
+            <cache-name>Items</cache-name>
+            <scheme-name>items</scheme-name>
+        </cache-mapping>
+
     </caching-scheme-mapping>
 
     <caching-schemes>
@@ -54,6 +60,27 @@
                 </init-params>
             </serializer>
             <listener/>
+            <autostart>false</autostart>
+        </distributed-scheme>
+
+        <near-scheme>
+            <scheme-name>items</scheme-name>
+            <front-scheme>
+                <local-scheme>
+                    <scheme-name>LocalMemoryScheme</scheme-name>
+                    <expiry-delay>15m</expiry-delay>
+                </local-scheme>
+            </front-scheme>
+            <back-scheme>
+                <distributed-scheme>
+                    <scheme-ref>distributed-items</scheme-ref>
+                </distributed-scheme>
+            </back-scheme>
+        </near-scheme>
+        <distributed-scheme>
+            <scheme-name>distributed-items</scheme-name>
+            <service-name>DistributedCache</service-name>
+            <serializer>java</serializer>
             <autostart>false</autostart>
         </distributed-scheme>
 
