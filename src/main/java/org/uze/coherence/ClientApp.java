@@ -2,92 +2,125 @@ package org.uze.coherence;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
-import com.tangosol.util.extractor.ReflectionExtractor;
-import com.tangosol.util.filter.AlwaysFilter;
-import com.tangosol.util.filter.InFilter;
-import com.tangosol.util.processor.ConditionalRemove;
+import com.tangosol.util.ValueExtractor;
+import com.tangosol.util.extractor.KeyExtractor;
+import com.tangosol.util.processor.VersionedPutAll;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.uze.coherence.model.Item;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 /**
  * @author Yuriy Kiselev (uze@yandex.ru).
  */
 public final class ClientApp {
 
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+
     private final AtomicLong sequence = new AtomicLong(System.nanoTime());
+
+    private final ValueExtractor extractor = new KeyExtractor();
 
     public static void main(String[] args) throws Exception {
         new ClientApp().run();
     }
 
     private void run() throws Exception {
+        logger.info("Starting...");
         final NamedCache items = CacheFactory.getCache("Items");
 
-        items.addIndex(new ReflectionExtractor("id"), false, null);
+        items.addIndex(extractor, false, null);
 
-        System.out.println("Clearing...");
+        logger.info("Clearing...");
         items.clear();
 
-        System.out.println("Filling...");
-        // Generate and fill
-        final List<String> keys = new ArrayList<>();
-        for (int i = 0; i < 1; i++) {
-            final Map<String, Item> map = generate(10_000);
-            items.putAll(map);
-            keys.addAll(map.keySet());
-        }
-        System.out.println("Reading...");
-        // Read
-        final ExecutorService pool = Executors.newFixedThreadPool(8);
+        logger.info("Generating...");
+        final Map<Object, Item> map = generate(1_000);
+        final List<Object> keys = new ArrayList<>(map.keySet());
+        logger.info("Filling...");
+        items.putAll(map);
+        logger.info("Cache size is {} items", items.size());
+        final int nThreads = 4;
+        final int nIterations = 10;
+        final ExecutorService pool = Executors.newFixedThreadPool(nThreads);
         try {
-            final List<Future<Boolean>> futures = new ArrayList<>();
-            for (String key : keys) {
-                futures.add(
-                        pool.submit(() -> call(items, Collections.singleton(key)))
-                );
-            }
-            int success = 0;
-            for (Future<Boolean> future : futures) {
-                if (future.get()) {
-                    success++;
+            for (int p = 1; p <= nIterations; p++) {
+                logger.info("Iteration #{}", p);
+                final List<Future> futures = new ArrayList<>();
+                for (int k = 0; k < nThreads; k++) {
+                    futures.add(
+                            pool.submit(() -> increment(items, keys))
+                    );
+                }
+                logger.info("Waiting for {} futures", futures.size());
+                for (Future future : futures) {
+                    future.get();
                 }
             }
-            System.out.println("Cache size: " + items.size() + ", " + success + " of " + futures.size() + " was successful");
+            final Map<Object, Item> result = items.getAll(keys);
+            final long sum = result.values()
+                    .stream()
+                    .mapToLong(Item::payload)
+                    .sum();
+            logger.info("sum={}, expected={}", sum, keys.size() * nThreads * nIterations);
         } finally {
             pool.shutdown();
             pool.awaitTermination(30, TimeUnit.SECONDS);
         }
+        logger.info("Done!");
     }
 
-    private Map<String, Item> generate(int count) {
-        final Map<String, Item> items = new HashMap<>();
+    private void increment(NamedCache cache, Collection<?> keys) {
+        final List<Object> toProcess = new ArrayList<>(keys);
+        while (!toProcess.isEmpty()) {
+            final Map<Object, Item> items = cache.getAll(toProcess);
+            logger.info("Got {} items...", items.size());
+            final Map<Object, Item> updated = items.entrySet()
+                    .stream()
+                    .collect(
+                            Collectors.toMap(
+                                    Map.Entry::getKey,
+                                    e -> new Item(e.getValue().id(), e.getValue().payload() + 1, e.getValue().version())
+                            )
+                    );
+            for (Item item : items.values()) {
+                item.payload(item.payload() + 1);
+            }
+            final List<Object> copy = new ArrayList<>(toProcess);
+            toProcess.clear();
+            final Map<Object, Item> result = cache.invokeAll(
+                    copy,
+                    new VersionedPutAll<>(updated, true, true)
+            );
+            if (!result.isEmpty()) {
+                logger.info("Failed to update {} items", result.size());
+            }
+            toProcess.addAll(result.keySet());
+        }
+    }
+
+    private Map<Object, Item> generate(int count) {
+        final Map<Object, Item> items = new HashMap<>();
         for (int i = 0; i < count; i++) {
-            final String key = Long.toString(sequence.incrementAndGet());
-            items.put(key, new Item(key, "item#" + i));
+            items.put(
+                    sequence.incrementAndGet(),
+                    new Item(
+                            "key#" + i,
+                            0
+                    )
+            );
         }
         return items;
     }
-
-    private boolean call(NamedCache cache, Set<String> keys) throws Exception {
-        final InFilter filter = new InFilter(new ReflectionExtractor("id"), keys);
-        final Set<Map.Entry<String, Item>> result = cache.entrySet(filter);
-        final boolean success = result.size() == keys.size();
-        if (!success) {
-            System.out.println("Expected " + keys.size() + ", got " + result.size());
-        }
-        cache.invokeAll(filter, new ConditionalRemove(AlwaysFilter.INSTANCE));
-        return success;
-    }
-
 }

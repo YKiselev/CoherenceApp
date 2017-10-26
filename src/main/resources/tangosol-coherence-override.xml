@@ -41,6 +41,8 @@
     </cluster-config>
 
     <logging-config>
+        <destination>log4j</destination>
+        <logger-name>coherenceLogger</logger-name>
         <severity-level system-property="tangosol.coherence.log.level">9</severity-level>
         <character-limit system-property="tangosol.coherence.log.limit">0</character-limit>
     </logging-config>
