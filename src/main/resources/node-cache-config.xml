@@ -32,10 +32,25 @@
             <service-name>DistributedCache</service-name>
             <serializer>java</serializer>
             <backing-map-scheme>
-                <local-scheme>
-                    <high-units>1000000</high-units>
-                    <expiry-delay>30m</expiry-delay>
-                </local-scheme>
+                <!--<local-scheme>-->
+                    <!--<high-units>1000000</high-units>-->
+                    <!--<expiry-delay>30m</expiry-delay>-->
+                <!--</local-scheme>-->
+                <read-write-backing-map-scheme>
+                    <internal-cache-scheme>
+                        <local-scheme>
+                            <high-units>1000000</high-units>
+                            <expiry-delay>30m</expiry-delay>
+                        </local-scheme>
+                    </internal-cache-scheme>
+                    <cachestore-scheme>
+                        <class-scheme>
+                            <class-name>org.uze.coherence.stores.InMemoryStore</class-name>
+                        </class-scheme>
+                    </cachestore-scheme>
+                    <read-only>false</read-only>
+                    <write-delay-seconds>5</write-delay-seconds>
+                </read-write-backing-map-scheme>
             </backing-map-scheme>
             <autostart>true</autostart>
         </distributed-scheme>

@@ -241,7 +241,7 @@ public class MergeTest {
         @Override
         public String toString() {
             return "Item{" +
-                "id=" + id +
+                "getId=" + id +
                 ", name='" + name + '\'' +
                 '}';
         }

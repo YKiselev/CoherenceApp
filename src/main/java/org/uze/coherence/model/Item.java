@@ -3,6 +3,7 @@ package org.uze.coherence.model;
 import com.tangosol.util.Versionable;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -14,36 +15,36 @@ public final class Item implements Serializable, Versionable<Long> {
 
     private String id;
 
-    private int payload;
+    private List<Long> payload;
 
     private long version;
 
     public Item() {
     }
 
-    public Item(String id, int payload, long version) {
+    public Item(String id, List<Long> payload, long version) {
         this.id = id;
         this.payload = payload;
         this.version = version;
     }
 
-    public Item(String id, int payload) {
+    public Item(String id, List<Long> payload) {
         this(id, payload, 0);
     }
 
-    public String id() {
+    public String getId() {
         return id;
     }
 
-    public int payload() {
+    public List<Long> getPayload() {
         return payload;
     }
 
-    public long version() {
+    public long getVersion() {
         return version;
     }
 
-    public void payload(int payload) {
+    public void getPayload(List<Long> payload) {
         this.payload = payload;
     }
 
@@ -61,7 +62,8 @@ public final class Item implements Serializable, Versionable<Long> {
     public String toString() {
         return "Item{" +
                 "id='" + id + '\'' +
-                ", payload='" + payload + '\'' +
+                ", getPayload='" + payload + '\'' +
+                ", getVersion='" + version + '\'' +
                 '}';
     }
 

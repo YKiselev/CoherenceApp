@@ -7,7 +7,7 @@ import com.tangosol.net.DefaultCacheServer;
  */
 public final class StorageNode {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         DefaultCacheServer.main(args);
     }
 

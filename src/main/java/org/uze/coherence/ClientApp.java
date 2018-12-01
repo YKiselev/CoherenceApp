@@ -11,6 +11,7 @@ import org.uze.coherence.model.Item;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,11 +70,17 @@ public final class ClientApp {
                 }
             }
             final Map<Object, Item> result = items.getAll(keys);
-            final long sum = result.values()
+            final int totalSubItems = result.values()
                     .stream()
-                    .mapToLong(Item::payload)
+                    .filter(v -> v.getPayload() != null)
+                    .mapToInt(v -> v.getPayload().size())
                     .sum();
-            logger.info("sum={}, expected={}", sum, keys.size() * nThreads * nIterations);
+            final Map m = items.getAll(Collections.singletonList(new Long(123456L)));
+//            final long sum = result.values()
+//                    .stream()
+//                    .mapToLong(Item::getPayload)
+//                    .sum();
+            logger.info("sum={}, expected={}", totalSubItems, keys.size() * nThreads * nIterations);
         } finally {
             pool.shutdown();
             pool.awaitTermination(30, TimeUnit.SECONDS);
@@ -91,11 +98,25 @@ public final class ClientApp {
                     .collect(
                             Collectors.toMap(
                                     Map.Entry::getKey,
-                                    e -> new Item(e.getValue().id(), e.getValue().payload() + 1, e.getValue().version())
+                                    e -> {
+                                        final Item item = new Item(e.getValue().getId(), e.getValue().getPayload(), e.getValue().getVersion());
+                                        List<Long> p = item.getPayload();
+                                        if (p == null) {
+                                            p = new ArrayList<>();
+                                        }
+                                        p.add(System.currentTimeMillis());
+                                        item.getPayload(p);
+                                        return item;
+                                    }
                             )
                     );
             for (Item item : items.values()) {
-                item.payload(item.payload() + 1);
+                List<Long> p = item.getPayload();
+                if (p == null) {
+                    p = new ArrayList<>();
+                }
+                p.add(System.currentTimeMillis());
+                item.getPayload(p);
             }
             final List<Object> copy = new ArrayList<>(toProcess);
             toProcess.clear();
@@ -115,10 +136,7 @@ public final class ClientApp {
         for (int i = 0; i < count; i++) {
             items.put(
                     sequence.incrementAndGet(),
-                    new Item(
-                            "key#" + i,
-                            0
-                    )
+                    new Item("key#" + i, null)
             );
         }
         return items;
