@@ -3,9 +3,13 @@ package org.uze.coherence.jdbc;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Ordering;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -226,14 +230,14 @@ public class TableMetadata {
 
         public TableMetadata build() {
             final Iterable<String> key = Iterables.transform(Ordering.from(KeyColumnComparator.INSTANCE)
-                .sortedCopy(Iterables.filter(columns, new Predicate<BuilderColumn>() {
-                    @Override
-                    public boolean apply(@Nullable BuilderColumn input) {
-                        return input != null && input.isKey();
-                    }
-                })), new Function<BuilderColumn, String>() {
+                    .sortedCopy(Iterables.filter(columns, new Predicate<BuilderColumn>() {
+                        @Override
+                        public boolean apply(BuilderColumn input) {
+                            return input != null && input.isKey();
+                        }
+                    })), new Function<BuilderColumn, String>() {
                 @Override
-                public String apply(@Nullable BuilderColumn input) {
+                public String apply(BuilderColumn input) {
                     return input != null ? input.getName() : null;
                 }
             });
