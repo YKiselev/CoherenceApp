@@ -67,7 +67,6 @@ public final class BulkPreloadProcessor<K, V, R> extends AbstractProcessor<K, V,
         while (it.hasNext()) {
             while (it.hasNext() && batch.size() < batchSize) {
                 batch.add(it.next());
-                it.remove();
             }
             if (!batch.isEmpty()) {
                 preload((Collection) batch);
@@ -79,6 +78,7 @@ public final class BulkPreloadProcessor<K, V, R> extends AbstractProcessor<K, V,
                 }
             }
         }
+        entries.clear();
         getLog().println("Processed " + mapResults.size() + " entries");
         return mapResults;
     }
