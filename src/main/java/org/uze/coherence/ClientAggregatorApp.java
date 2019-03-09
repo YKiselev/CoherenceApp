@@ -53,7 +53,7 @@ public final class ClientAggregatorApp {
             //logger.info("Got {} items in {}", result2.size(), sw);
             sw.reset().start();
             //Map bulkPreloadResult = items.invokeAll(keys, new BulkPreloadExtractorProcessor(multiExtractor));
-            Map bulkPreloadResult = items.invokeAll(keys, new BulkPreloadProcessor(new ExtractorProcessor(multiExtractor)));
+            Map bulkPreloadResult = items.invokeAll(keys, new BulkPreloadProcessor(new ExtractorProcessor(multiExtractor), 5_000));
             logger.info("Bulk preload complete in {}: got {} items", sw, bulkPreloadResult.size());
         }
 

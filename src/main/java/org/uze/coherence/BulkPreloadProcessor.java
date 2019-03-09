@@ -9,6 +9,7 @@ import com.tangosol.util.LiteMap;
 import com.tangosol.util.processor.AbstractProcessor;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
@@ -25,17 +26,24 @@ public final class BulkPreloadProcessor<K, V, R> extends AbstractProcessor<K, V,
 
     private InvocableMap.EntryProcessor<K, V, R> delegate;
 
+    private int batchSize;
+
     public BulkPreloadProcessor() {
     }
 
-    public BulkPreloadProcessor(InvocableMap.EntryProcessor<K, V, R> delegate) {
+    public BulkPreloadProcessor(InvocableMap.EntryProcessor<K, V, R> delegate, int batchSize) {
+        if (batchSize <= 0) {
+            throw new IllegalArgumentException("batch size should be greater than zero!");
+        }
         this.delegate = Objects.requireNonNull(delegate);
+        this.batchSize = batchSize;
     }
 
     @Override
     public String toString() {
         return "BulkPreloadProcessor{" +
                 "delegate=" + delegate +
+                ", batchSize=" + batchSize +
                 '}';
     }
 
@@ -54,12 +62,22 @@ public final class BulkPreloadProcessor<K, V, R> extends AbstractProcessor<K, V,
                 : () -> {
         };
         consumeAllPresentEntries(entries, mapResults, heartbeat);
-        // todo?
-        heartbeat.run();
-        preload((Collection) entries);
-        consumeAllPresentEntries(entries, mapResults, heartbeat);
-        if (!entries.isEmpty()) {
-            err(entries.size() + " entries was left behind (unable to preload)!");
+        final Iterator<? extends InvocableMap.Entry<K, V>> it = entries.iterator();
+        final Set<InvocableMap.Entry<K, V>> batch = new HashSet<>(batchSize);
+        while (it.hasNext()) {
+            while (it.hasNext() && batch.size() < batchSize) {
+                batch.add(it.next());
+                it.remove();
+            }
+            if (!batch.isEmpty()) {
+                preload((Collection) batch);
+                heartbeat.run();
+                consumeAllPresentEntries(batch, mapResults, heartbeat);
+                if (!batch.isEmpty()) {
+                    err(batch.size() + " entries was left behind (unable to preload)!");
+                    batch.clear();
+                }
+            }
         }
         getLog().println("Processed " + mapResults.size() + " entries");
         return mapResults;
